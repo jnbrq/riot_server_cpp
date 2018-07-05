@@ -42,16 +42,17 @@ target_include_directories(
     riot_server_cpp
     PUBLIC ${riot_server_cpp_SOURCE_DIR}/include)
 
-find_program(CMAKE_CXX_CPPCHECK NAMES cppcheck)
-if (CMAKE_CXX_CPPCHECK)
+find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
+if (CPPCHECK_EXECUTABLE)
     list(
-        APPEND CMAKE_CXX_CPPCHECK 
+        APPEND CPPCHECK_EXECUTABLE 
             "--enable=warning"
             "--inconclusive"
             "--force" 
             "--inline-suppr"
             "--suppressions-list=${CMAKE_SOURCE_DIR}/CppCheckSuppressions.txt"
     )
+    set(CMAKE_CXX_CPPCHECK ${CPPCHECK_EXECUTABLE})
 endif()
 
 if (NOT DEFINED riot_server_cpp_NO_TESTS)
