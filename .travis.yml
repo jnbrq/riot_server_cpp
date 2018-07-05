@@ -1,5 +1,3 @@
-# Canberk Sönmez
-
 sudo: required
 dist: trusty
 language:
