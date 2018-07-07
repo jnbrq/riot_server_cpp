@@ -21,6 +21,7 @@ enum protocol_error_code: unsigned short {
     err_malformed_header,
     err_no_name,
     err_activate_security_fail,
+    err_header_unspecified,
     
     /* parser errors */
     err_parser = 20,

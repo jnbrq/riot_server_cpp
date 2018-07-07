@@ -28,6 +28,14 @@ struct simple_security_policy {
         debug<T>();
         return security_actions::action_raise_warning_and_ignore;
     }
+    
+    template <typename ConnectionBase>
+    auto operator()(
+        ConnectionBase &,
+        security_actions::header_size_limit_reached const&) {
+        // this should be a must
+        return security_actions::action_raise_error_and_halt;
+    }
 };
 
 struct simple_artifact_provider {
@@ -56,8 +64,22 @@ struct simple_artifact_provider {
     
     template <typename ConnectionBase>
     std::size_t operator()(
-        ConnectionBase &, server_artifacts::description_message_max_size &) {
-        return 300;
+        ConnectionBase &,
+        server_artifacts::header_message_max_size const &a) {
+        /* const is necessary, otherwise it fails to match this one for
+         * rvalue references !!! */
+        // one could also define template <C, T> ... T & instead of
+        // template <C, T> ... T const & .
+        debug<std::decay_t<decltype(a)>>();
+        return 50;
+    }
+    
+    template <typename ConnectionBase>
+    std::size_t operator()(
+        ConnectionBase &,
+        server_artifacts::header_max_size const &a) {
+        debug<std::decay_t<decltype(a)>>();
+        return 200;
     }
 };
 

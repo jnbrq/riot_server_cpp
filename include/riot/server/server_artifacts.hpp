@@ -20,8 +20,8 @@ namespace server_artifacts {
         using result_type = ResultType;
     };
     
-    struct description_message_max_size: query_base<std::size_t> {  };
-    struct description_max_size: query_base<std::size_t> {  };
+    struct header_message_max_size: query_base<std::size_t> {  };
+    struct header_max_size: query_base<std::size_t> {  };
     
     struct can_activate: query_base<bool> {  };
     struct minimum_time_between_triggers: query_base<duration_t> {  };

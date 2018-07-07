@@ -13,8 +13,12 @@
 #include <type_traits>
 #include <list>
 #include <memory>
+#include <limits>
+#include <utility>
+#include <boost/ref.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <riot/server/connection_base.hpp>
+#include <riot/server/asio_helpers.hpp>
 
 namespace riot::server {
 namespace simple_tcp_ip {
@@ -42,6 +46,8 @@ struct connection: connection_base<ConnectionManager> {
     
     virtual ~connection() {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
+        error_code ec;
+        sock.shutdown(ip::tcp::socket::shutdown_both, ec);
     }
     
 private:
@@ -68,20 +74,32 @@ protected:
             });
     }
     
+    bool exceeded_{false};
+    asio_helpers::match_char_size_limited matcher_{'\n', 0, &exceeded_};
+    
     void do_set_async_read_message_max_size(std::size_t sz) override {
-        
+        matcher_.sz = sz;
     }
     
     void do_async_read_message(
         std::function<void (const std::string &, bool)> callback) override {
+        using iterator = boost::asio::buffers_iterator<
+            boost::asio::streambuf::const_buffers_type>;
+        exceeded_ = false;
         async_read_until(
             sock,
             buffer_,
-            '\n',
+            matcher_,
+            /* on completed */
             [this, _f = std::move(callback)](
                 const error_code &ec, std::size_t bt) {
                 boost::ignore_unused(bt);
                 if (ec) {
+                    _f("", false);
+                    return ;
+                }
+                if (exceeded_) {
+                    // TODO maybe better error reporting?
                     _f("", false);
                     return ;
                 }

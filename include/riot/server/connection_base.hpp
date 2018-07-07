@@ -316,7 +316,7 @@ struct connection_base:
      */
     void async_start() {
         do_set_async_read_message_max_size(
-            get_artifact(server_artifacts::description_message_max_size{}));
+            get_artifact(server_artifacts::header_message_max_size {}));
         async_read_next_message();
     }
     
@@ -835,6 +835,7 @@ private:
     };
     
     state_t state{st_protocol};
+    std::size_t description_total_size{0};
     
     void handle_next_message(
         const std::string &msg, bool res) {
@@ -845,6 +846,17 @@ private:
         }
         
         reset_idle_counter();
+        
+        auto description_max_size =
+            get_artifact(server_artifacts::header_max_size {});
+        if (description_max_size != 0) {
+            if (description_total_size >= description_max_size) {
+                auto action = get_security_action(
+                    security_actions::header_size_limit_reached{});
+                RIOT_HANDLE_ERROR_CASE(*this, action, err_header_unspecified);
+            }
+            description_total_size += msg.size() + 1 /* '\n' */;
+        }
         
         switch (state) {
         case st_protocol: {
@@ -863,7 +875,7 @@ private:
             else {
                 // ErrorCase: Wrong Protocol
                 auto action =
-                    get_security_action(description_wrong_protocol {});
+                    get_security_action( header_wrong_protocol {});
                 
                 RIOT_BEGIN_ERROR_CASE(*this, action, err_protocol);
                 send_protocol();    // in any case, send protocol
@@ -882,7 +894,7 @@ private:
                 else {
                     // ErrorCase: No Name
                     auto action =
-                        get_security_action(description_no_name {});
+                        get_security_action( header_no_name {});
                     
                     RIOT_HANDLE_ERROR_CASE(*this, action, err_malformed_header);
                     
@@ -924,7 +936,7 @@ private:
                 catch (std::exception const &ex) {
                     // ErrorCase: Malformed Header
                     auto action =
-                        get_security_action(description_malformed_header {});
+                        get_security_action( header_malformed_header {});
                     
                     RIOT_HANDLE_ERROR_CASE(*this, action, err_malformed_header);
                     

@@ -53,6 +53,8 @@ struct connection: connection_base<ConnectionManager> {
     
     virtual ~connection() {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
+        error_code ec;
+        sock.shutdown(ip::tcp::socket::shutdown_both, ec);
     }
     
 private:
@@ -111,7 +113,8 @@ protected:
     }
     
     void do_set_async_read_message_max_size(std::size_t sz) override {
-        
+        ws_.read_message_max(sz);
+            // 0 means maximum, as stated in Beast docs
     }
     
     void do_async_read_binary(

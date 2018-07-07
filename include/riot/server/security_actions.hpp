@@ -43,10 +43,10 @@ namespace security_actions {
             action_raise_error_and_halt | _action_block | action_not_allowed,
     };
     
-    struct description_wrong_protocol {  };
-    struct description_no_name {  };
-    struct description_malformed_header {  };
-    struct description_size_limit_reached {  };
+    struct header_wrong_protocol {  };
+    struct header_no_name {  };
+    struct header_malformed_header {  };
+    struct header_size_limit_reached {  };
     struct malformed_command {  };
     struct invalid_argument {  };
     struct malformed_regex {  };
