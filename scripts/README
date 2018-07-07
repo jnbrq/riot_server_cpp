@@ -1,0 +1,2 @@
+All of the scripts should be executed from the source directory. For example,
+you should type scripts/x.sh, not ./x.sh .

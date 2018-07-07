@@ -20,6 +20,7 @@ find_package(
 )
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
+find_package(Lua REQUIRED)
 
 add_executable(
     riot_server_cpp
@@ -36,11 +37,13 @@ target_link_libraries(
         Boost::system
         OpenSSL::SSL
         OpenSSL::Crypto
-        )
+        ${LUA_LIBRARIES})
 
 target_include_directories(
     riot_server_cpp
-    PUBLIC ${riot_server_cpp_SOURCE_DIR}/include)
+    PUBLIC ${LUA_INCLUDE_DIR}
+    PUBLIC ${riot_server_cpp_SOURCE_DIR}/include
+    PUBLIC ${riot_server_cpp_SOURCE_DIR}/external/include)
 
 find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
 if (CPPCHECK_EXECUTABLE)

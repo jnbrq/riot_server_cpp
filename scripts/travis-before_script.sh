@@ -27,13 +27,17 @@ runtime-link=shared
 --with-locale
 --with-iostreams" ;
 wget "${BOOST_URL}" ;
-tar xf boost*.tar.bz2 ;
-cd boost* ;
+mkdir boost
+tar xf boost*.tar.bz2 -C ./boost --strip-components=1 ;
+cd ./boost ;
 "echo 'using gcc : 7 : /usr/bin/g++-7 ; ' >> tools/build/src/user-config.jam ;"
 ./bootstrap.sh ;
 ${BOOST_BUILD_CMD} > boost_build_log.txt ;
 sudo ${BOOST_BUILD_CMD} install > boost_install_log.txt ;
 cd .. ; # up one directory
+
+# also download sol2.hpp
+./scripts/update-sol.sh
 
 # configure
 mkdir build ;

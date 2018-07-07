@@ -14,6 +14,7 @@ addons:
 
 before_script:
     - chmod +x scripts/*
+    - ./scripts/update-sol.sh
     - ./scripts/travis-before_script.sh
     
 script:
