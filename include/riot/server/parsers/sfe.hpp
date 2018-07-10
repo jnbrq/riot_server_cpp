@@ -57,6 +57,7 @@
 #define RIOT_SERVER_SFE_PARSER_INCLUDED
 
 #include <string>
+#include <vector>
 #include <list>
 #include <stdexcept>
 #include <iostream>
@@ -75,7 +76,7 @@
 // ASTs
 namespace riot::server {
     // sfe = simple_filter_expression
-    namespace sfe_parser {
+    namespace parsers::sfe {
         namespace ast {
             namespace x3 = boost::spirit::x3;
             
@@ -135,26 +136,28 @@ namespace riot::server {
 
 // Boost.Fusion adaption
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::sfe_parser::ast::unary_op,
+    riot::server::parsers::sfe::ast::unary_op,
     op,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::sfe_parser::ast::matcher_op,
+    riot::server::parsers::sfe::ast::matcher_op,
     matcher,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::sfe_parser::ast::binary_op_group,
+    riot::server::parsers::sfe::ast::binary_op_group,
     first,
     rest
 );
 
 // grammars
+#include <riot/server/parsers/detail/begin.hpp>
+#ifdef RIOT_SERVER_PARSER_CONTINUE
 namespace riot::server {
-    namespace sfe_parser {
+    namespace parsers::sfe {
         namespace x3 = boost::spirit::x3;
         namespace grammars {
             using x3::alpha;
@@ -372,47 +375,78 @@ namespace riot::server {
         }
     }
 }
+#endif
+#include <riot/server/parsers/detail/end.hpp>
 
 // utilities
+#include <riot/server/parsers/detail/begin.hpp>
+#ifdef RIOT_SERVER_PARSER_CONTINUE
 namespace riot::server {
-    namespace sfe_parser {
-        template <typename ConstIt>
-        inline auto parse(
-            ConstIt const begin, ConstIt const end) {
-            auto it = begin;
-            ast::expression expr;
-            auto const parser = grammars::ce::expression;
-            bool r = false;
-            try {
-                r = x3::phrase_parse(
-                    it,
-                    end,
-                    parser,
-                    x3::space,
-                    expr);
+    namespace parsers::sfe {
+        namespace templated {
+            template <typename ConstIt>
+            inline auto parse(
+                ConstIt const begin, ConstIt const end) {
+                auto it = begin;
+                ast::expression expr;
+                auto const parser = grammars::ce::expression;
+                bool r = false;
+                try {
+                    r = x3::phrase_parse(
+                        it,
+                        end,
+                        parser,
+                        x3::space,
+                        expr);
+                }
+                catch (std::regex_error const &re) {
+                    std::ostringstream oss;
+                    oss << "[parse_sfep] regex error at " << (it-begin)
+                        << " error message: " << re.what();
+                    throw std::runtime_error(oss.str());
+                }
+                if (!r)
+                    throw std::runtime_error(
+                        "[parse_sfep] parser error at " +
+                        std::to_string(it-begin));
+                if (it != end)
+                    throw std::runtime_error(
+                        "[parse_sfep] not consumed at " +
+                        std::to_string(it-begin));
+                return expr;
+            };
+            
+            template <typename String>
+            inline auto parse(const String &str) {
+                return parse(std::cbegin(str), std::cend(str));
             }
-            catch (std::regex_error const &re) {
-                std::ostringstream oss;
-                oss << "[parse_sfep] regex error at " << (it-begin)
-                    << " error message: " << re.what();
-                throw std::runtime_error(oss.str());
-            }
-            if (!r)
-                throw std::runtime_error(
-                    "[parse_sfep] parser error at " +
-                    std::to_string(it-begin));
-            if (it != end)
-                throw std::runtime_error(
-                    "[parse_sfep] not consumed at " +
-                    std::to_string(it-begin));
-            return expr;
-        };
-        
-        template <typename String>
-        inline auto parse(const String &str) {
-            return parse(std::cbegin(str), std::cend(str));
         }
+        using templated::parse;
+    }
+}
+#endif
+#include <riot/server/parsers/detail/end.hpp>
+
+#ifdef RIOT_SERVER_PARSER_SEPARATELY_COMPILED
+// TODO the following code maybe in a separate
+// file to save space?
+namespace riot::server {
+    namespace parsers::sfe {
+        ast::expression parse(
+            std::string::const_iterator,
+            std::string::const_iterator);
+        ast::expression parse(const std::string &);
         
+        ast::expression parse(
+            std::vector<char>::const_iterator,
+            std::vector<char>::const_iterator);
+        ast::expression parse(const std::vector<char> &);
+    }
+}
+#endif
+
+namespace riot::server {
+    namespace parsers::sfe {
         namespace detail {
             using namespace ast;
             
@@ -635,23 +669,31 @@ namespace riot::server {
 }
 
 namespace riot::server {
-    namespace sfe_parser {
+    namespace parsers::sfe {
         /**
             * sfep expression AST
             */
         using expression = ast::expression;
-        
+    }
+}
+
+#include <riot/server/parsers/detail/begin.hpp>
+#ifdef RIOT_SERVER_PARSER_CONTINUE
+namespace riot::server {
+    namespace parsers::sfe {
         /**
             * sfep expression parser
             */
         static auto const expression_ = grammars::ce::expression;
     }
 }
+#endif
+#include <riot/server/parsers/detail/end.hpp>
 
 inline std::ostream &operator<<(
     std::ostream &os,
-    riot::server::sfe_parser::ast::expression const &expression) {
-    using namespace riot::server::sfe_parser;
+    riot::server::parsers::sfe::ast::expression const &expression) {
+    using namespace riot::server::parsers::sfe;
     printer p(os);
 #ifdef RIOT_SERVER_SFEP_NO_MATCHER_PADDING
     p.matcher_padding = false;

@@ -20,8 +20,8 @@
 #include <riot/server/connection_base.hpp>
 #include <riot/server/asio_helpers.hpp>
 
-namespace riot::server {
-namespace simple_tcp_ip {
+namespace riot::server::simple {
+namespace tcp_ip {
 namespace detail {
 
 template <typename ConnectionManager>

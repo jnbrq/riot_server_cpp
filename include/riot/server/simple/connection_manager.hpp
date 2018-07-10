@@ -12,12 +12,13 @@
 #include <type_traits>
 #include <list>
 #include <memory>
+#include <riot/server/connection_base.hpp>
 #include <riot/server/security_actions.hpp>
 #include <riot/server/server_artifacts.hpp>
 
-namespace riot::server {
+namespace riot::server::simple {
 
-struct simple_security_policy {
+struct security_policy {
     template <typename T>
     static void debug() {
         std::cout << "security_action: " << typeid(T).name() << "\n";
@@ -38,7 +39,7 @@ struct simple_security_policy {
     }
 };
 
-struct simple_artifact_provider {
+struct artifact_provider {
     template <typename T>
     static void debug() {
         std::cout << "artifact: " << typeid(T).name() << "\n";
@@ -83,19 +84,19 @@ struct simple_artifact_provider {
     }
 };
 
-struct simple_connection_manager {
+struct connection_manager {
 public:
-    using connection_base_type = connection_base<simple_connection_manager>;
+    using connection_base_type = connection_base<connection_manager>;
     
-    simple_security_policy security_policy;
-    simple_artifact_provider artifact_provider;
+    riot::server::simple::security_policy security_policy;
+    riot::server::simple::artifact_provider artifact_provider;
     std::list<std::weak_ptr<connection_base_type>> connections;
     
     // now the Boost-specific design
     boost::asio::io_context io_ctx;
     std::unique_ptr<boost::asio::io_context::work> work;
     
-    simple_connection_manager() {
+    connection_manager() {
         work = std::make_unique<boost::asio::io_context::work>(io_ctx);
     }
 };

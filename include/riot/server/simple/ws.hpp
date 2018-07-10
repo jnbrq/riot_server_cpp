@@ -16,8 +16,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 
-namespace riot::server {
-namespace simple_ws {
+namespace riot::server::simple {
+namespace ws {
 namespace detail {
 
 using namespace boost::asio;

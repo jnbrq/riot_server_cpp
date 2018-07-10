@@ -24,7 +24,9 @@ find_package(Lua REQUIRED)
 
 add_executable(
     riot_server_cpp
-    src/main.cpp)
+    src/main.cpp
+    src/parsers.cpp
+    src/lua_interface.cpp)
 
 if(WIN32)
     target_link_libraries(riot_server_cpp wsock32 ws2_32)
@@ -44,6 +46,14 @@ target_include_directories(
     PUBLIC ${LUA_INCLUDE_DIR}
     PUBLIC ${riot_server_cpp_SOURCE_DIR}/include
     PUBLIC ${riot_server_cpp_SOURCE_DIR}/external/include)
+
+if(DEFINED PARSER_SEPARATELY_COMPILED)
+
+target_compile_definitions(
+    riot_server_cpp
+    PRIVATE RIOT_SERVER_PARSER_SEPARATELY_COMPILED)
+
+endif()
 
 find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
 if (CPPCHECK_EXECUTABLE)

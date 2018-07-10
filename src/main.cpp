@@ -6,18 +6,17 @@
  */
 
 #include <iostream>
-
 #include <thread>
 
-#include <riot/server/servers/simple_ws.hpp>
-#include <riot/server/servers/simple_tcp_ip.hpp>
-#include <riot/server/connection_managers/simple_connection_manager.hpp>
+#include <sol/sol.hpp>
+#include <riot/server/simple/simple.hpp>
 
 int main() {
-    using namespace riot::server;
-    simple_connection_manager conn_man;
-    simple_tcp_ip::server<simple_connection_manager> server1(conn_man);
-    simple_ws::server<simple_connection_manager> server2(conn_man);
+    using namespace riot::server::simple;
+    
+    connection_manager conn_man;
+    tcp_ip::server<connection_manager> server1(conn_man);
+    ws::server<connection_manager> server2(conn_man);
     
     server1.async_start();
     server2.async_start();

@@ -9,7 +9,7 @@
 #include <tuple>
 
 #define RIOT_SERVER_SFEP_NO_MATCHER_PADDING
-#include <riot/server/parsers/sfe_parser.hpp>
+#include <riot/server/parsers/sfe.hpp>
 
 namespace utf   = boost::unit_test;
 namespace utfd  = utf::data;
@@ -31,7 +31,7 @@ auto load_negatives() {
 }
 
 BOOST_DATA_TEST_CASE(test_negatives, utfd::make(load_negatives()), x) {
-    BOOST_CHECK_THROW(sfe_parser::parse(x), std::runtime_error);
+    BOOST_CHECK_THROW(parsers::sfe::parse(x), std::runtime_error);
 }
 
 
@@ -63,7 +63,7 @@ auto load_comparisons() {
 
 BOOST_DATA_TEST_CASE(test_comparisons, utfd::make(load_comparisons()), x, y) {
     std::ostringstream oss;
-    BOOST_CHECK_NO_THROW(oss << sfe_parser::parse(x));
+    BOOST_CHECK_NO_THROW(oss << parsers::sfe::parse(x));
     BOOST_CHECK_EQUAL(y, oss.str());
 }
 

@@ -8,6 +8,7 @@
 #ifndef RIOT_SERVER_COMMAND_PARSER_INCLUDED
 #define RIOT_SERVER_COMMAND_PARSER_INCLUDED
 
+#include <vector>
 #include <string>
 #include <iostream>
 
@@ -18,7 +19,7 @@
 #include <boost/spirit/home/x3/support/ast/variant.hpp>
 
 #include <boost/fusion/include/adapt_struct.hpp>
-#include <riot/server/parsers/sfe_parser.hpp>
+#include <riot/server/parsers/sfe.hpp>
 
 /**
  * Error Handling? I do not want error handling. However, I might implement it
@@ -28,13 +29,13 @@
  */
 
 namespace riot::server {
-    namespace command_parser {
+    namespace parsers::command {
         namespace x3 = boost::spirit::x3;
         namespace cmd {
             struct nil {  };
             
             struct subscribe {
-                sfe_parser::expression expr;
+                parsers::sfe::expression expr;
             };
             
             struct unsubscribe {
@@ -43,18 +44,18 @@ namespace riot::server {
             
             struct trigger {
                 std::string evt;
-                boost::optional<sfe_parser::expression> expr;
+                boost::optional<parsers::sfe::expression> expr;
             };
             
             struct trigger_binary {
                 std::size_t size;
                 std::string evt;
-                boost::optional<sfe_parser::expression> expr;
+                boost::optional<parsers::sfe::expression> expr;
             };
             
             struct trigger_empty {
                 std::string evt;
-                boost::optional<sfe_parser::expression> expr;
+                boost::optional<parsers::sfe::expression> expr;
             };
             
             struct trigger_cached {
@@ -150,47 +151,47 @@ namespace riot::server {
 }
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::nil
+    riot::server::parsers::command::cmd::nil
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::subscribe,
+    riot::server::parsers::command::cmd::subscribe,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::unsubscribe,
+    riot::server::parsers::command::cmd::unsubscribe,
     n
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger,
+    riot::server::parsers::command::cmd::trigger,
     evt,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_binary,
+    riot::server::parsers::command::cmd::trigger_binary,
     size,
     evt,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_empty,
+    riot::server::parsers::command::cmd::trigger_empty,
     evt,
     expr
 );
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_cached,
+    riot::server::parsers::command::cmd::trigger_cached,
     evt,
     expr_id
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_cached_binary,
+    riot::server::parsers::command::cmd::trigger_cached_binary,
     size,
     evt,
     expr_id
@@ -198,14 +199,14 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_cached_empty,
+    riot::server::parsers::command::cmd::trigger_cached_empty,
     evt,
     expr_id
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::trigger_cached_cached_data,
+    riot::server::parsers::command::cmd::trigger_cached_cached_data,
     evt,
     expr_id,
     data_id
@@ -213,68 +214,70 @@ BOOST_FUSION_ADAPT_STRUCT(
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::pause
+    riot::server::parsers::command::cmd::pause
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::resume
+    riot::server::parsers::command::cmd::resume
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::alive
+    riot::server::parsers::command::cmd::alive
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::kill_me
+    riot::server::parsers::command::cmd::kill_me
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::echo,
+    riot::server::parsers::command::cmd::echo,
     state
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::execute,
+    riot::server::parsers::command::cmd::execute,
     line
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::execute_script,
+    riot::server::parsers::command::cmd::execute_script,
     size
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::execute_cached,
+    riot::server::parsers::command::cmd::execute_cached,
     id
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::store,
+    riot::server::parsers::command::cmd::store,
     line
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::store_binary,
+    riot::server::parsers::command::cmd::store_binary,
     size
 );
 
 
 BOOST_FUSION_ADAPT_STRUCT(
-    riot::server::command_parser::cmd::release,
+    riot::server::parsers::command::cmd::release,
     id
 );
 
+#include <riot/server/parsers/detail/begin.hpp>
+#ifdef RIOT_SERVER_PARSER_CONTINUE
 namespace riot::server {
-    namespace command_parser {
+    namespace parsers::command {
         namespace grammar {
             namespace x3 = boost::spirit::x3;
             
@@ -447,7 +450,7 @@ namespace riot::server {
                     lit("subs ") |
                     lit("s10n") |
                     lit("s ")
-                ) >> sfe_parser::expression_;
+                ) >> parsers::sfe::expression_;
             
             static auto const cmd_unsubscribe_def =
                 (
@@ -463,14 +466,14 @@ namespace riot::server {
                     lit("trigger ") |
                     lit("trig ") |
                     lit("t ")
-                ) >> identifier >> -sfe_parser::expression_;
+                ) >> identifier >> -parsers::sfe::expression_;
             
             static auto const cmd_trigger_binary_def =
                 (
                     lit("triggerb ") |
                     lit("trigb ") |
                     lit("tb ")
-                ) >> size_t_ >> identifier >> -sfe_parser::expression_;
+                ) >> size_t_ >> identifier >> -parsers::sfe::expression_;
             
             static auto const cmd_trigger_empty_def =
                 (
@@ -480,7 +483,7 @@ namespace riot::server {
                     lit("notify ") |
                     lit("notif ") |
                     lit("n ")
-                ) >> identifier >> -sfe_parser::expression_;
+                ) >> identifier >> -parsers::sfe::expression_;
             
             static auto const cmd_trigger_cached_def =
                 (
@@ -612,54 +615,76 @@ namespace riot::server {
 }
 
 namespace riot::server {
-    namespace command_parser {
+    namespace parsers::command {
         static auto const command_ = grammar::command;
     }
 }
 
 namespace riot::server {
-    namespace command_parser {
-        template <typename ConstIt>
-        inline auto parse(
-            ConstIt const begin, ConstIt const end) {
-            auto it = begin;
-            command cmd;
-            auto const parser = command_;
-            bool r = false;
-            try {
-                r = x3::phrase_parse(
-                    it,
-                    end,
-                    parser,
-                    x3::space,
-                    cmd);
+    namespace parsers::command {
+        namespace templated {
+            template <typename ConstIt>
+            inline auto parse(
+                ConstIt const begin, ConstIt const end) {
+                auto it = begin;
+                command cmd;
+                auto const parser = command_;
+                bool r = false;
+                try {
+                    r = x3::phrase_parse(
+                        it,
+                        end,
+                        parser,
+                        x3::space,
+                        cmd);
+                }
+                catch (std::exception const &ex) {
+                    std::ostringstream oss;
+                    oss << "[parse_command] unexpected throw at " << (it-begin)
+                        << " error message: " << ex.what();
+                    throw std::runtime_error(oss.str());
+                }
+                if (!r)
+                    throw std::runtime_error(
+                        "[parse_command] parser error at " +
+                        std::to_string(it-begin));
+                if (it != end)
+                    throw std::runtime_error(
+                        "[parse_command] not consumed at " +
+                        std::to_string(it-begin));
+                return cmd;
+            };
+            
+            template <typename String>
+            inline auto parse(const String &str) {
+                return parse(std::cbegin(str), std::cend(str));
             }
-            catch (std::exception const &ex) {
-                std::ostringstream oss;
-                oss << "[parse_command] unexpected throw at " << (it-begin)
-                    << " error message: " << ex.what();
-                throw std::runtime_error(oss.str());
-            }
-            if (!r)
-                throw std::runtime_error(
-                    "[parse_command] parser error at " +
-                    std::to_string(it-begin));
-            if (it != end)
-                throw std::runtime_error(
-                    "[parse_command] not consumed at " +
-                    std::to_string(it-begin));
-            return cmd;
-        };
-        
-        template <typename String>
-        inline auto parse(const String &str) {
-            return parse(std::cbegin(str), std::cend(str));
         }
+        
+        using templated::parse;
     }
 }
+#endif
+#include <riot/server/parsers/detail/end.hpp>
+
+#ifdef RIOT_SERVER_PARSER_SEPARATELY_COMPILED
+namespace riot::server {
+    namespace parsers::command {
+        command parse(
+            std::string::const_iterator,
+            std::string::const_iterator);
+        command parse(const std::string &);
+        
+        command parse(
+            std::vector<char>::const_iterator,
+            std::vector<char>::const_iterator);
+        command parse(const std::vector<char> &);
+    }
+}
+#endif
 
 namespace riot::server {
-    namespace command_parser {
+    namespace parsers::command {
         struct printer: boost::static_visitor<void> {
             std::ostream &out;
             
@@ -764,16 +789,16 @@ namespace riot::server {
                 
             }
         private:
-            sfe_parser::expression true_expr{sfe_parser::parse(".*")};
+            parsers::sfe::expression true_expr{parsers::sfe::parse(".*")};
         };
     }
 }
 
-std::ostream &operator<<(
+inline std::ostream &operator<<(
     std::ostream &out,
-    const riot::server::command_parser::command &cmd) {
+    const riot::server::parsers::command::command &cmd) {
     using namespace riot::server;
-    command_parser::printer p{out};
+    parsers::command::printer p{out};
     boost::apply_visitor(p, cmd);
     return out;
 }

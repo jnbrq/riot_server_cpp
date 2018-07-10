@@ -46,8 +46,8 @@
 #ifndef RIOT_SERVER_CONNECTION_BASE_INCLUDED
 #define RIOT_SERVER_CONNECTION_BASE_INCLUDED
 
-#include <riot/server/parsers/header_parser.hpp>
-#include <riot/server/parsers/command_parser.hpp>
+#include <riot/server/parsers/header.hpp>
+#include <riot/server/parsers/command.hpp>
 #include <riot/server/security_actions.hpp>
 #include <riot/server/server_artifacts.hpp>
 #include <sstream>
@@ -77,9 +77,9 @@ struct connection_base:
     
     struct subscription {
         std::size_t n;
-        sfe_parser::expression expr;
+        parsers::sfe::expression expr;
         
-        subscription(std::size_t n_, sfe_parser::expression expr_):
+        subscription(std::size_t n_, parsers::sfe::expression expr_):
             n(n_), expr(std::move(expr_)) {
         }
         
@@ -94,7 +94,7 @@ struct connection_base:
         } trigger_type;
         const connection_base * sender;
         std::string evt;
-        sfe_parser::expression expr;
+        parsers::sfe::expression expr;
         std::vector<char> data; // should have trailing new line!
         
         event() {}
@@ -103,7 +103,7 @@ struct connection_base:
             const connection_base *sender_,
             trigger_type_t tt_,
             std::string evt_ /* pass by value to store! */,
-            sfe_parser::expression expr_ /* same */):
+            parsers::sfe::expression expr_ /* same */):
             trigger_type{tt_},
             sender{sender_},
             evt{std::move(evt_)},
@@ -231,7 +231,7 @@ struct connection_base:
             return ;
         
         // first, evaluate the sfe of evt object
-        if (!sfe_parser::evaluate(
+        if (!parsers::sfe::evaluate(
             evt->expr, name, groups.begin(), groups.end()))
             return ;
         
@@ -263,7 +263,7 @@ struct connection_base:
         bool any_match = false;
         std::list<std::size_t> matching_subscriptions;
         for (auto &subscription: subscriptions) {
-            if (sfe_parser::evaluate(
+            if (parsers::sfe::evaluate(
                 subscription.expr,
                 evt->evt,
                 evt->sender->name,
@@ -330,7 +330,7 @@ struct connection_base:
     
     std::list<subscription> subscriptions;
     std::map<std::size_t, std::vector<char>> local_storage;
-    std::map<std::size_t, sfe_parser::expression> expression_cache;
+    std::map<std::size_t, parsers::sfe::expression> expression_cache;
     
     // should have both protocol and host
     std::string endpoint_str;
@@ -393,7 +393,7 @@ private:
             return conn.get_security_action(std::forward<T>(t));
         }
         
-        void operator()(command_parser::cmd::subscribe &c) {
+        void operator()(parsers::command::cmd::subscribe &c) {
             auto nmax = std::max_element(
                 std::begin(conn.subscriptions),
                 std::end(conn.subscriptions),
@@ -404,7 +404,7 @@ private:
             conn.async_read_next_message();
         }
         
-        void operator()(command_parser::cmd::unsubscribe &c) {
+        void operator()(parsers::command::cmd::unsubscribe &c) {
             using namespace security_actions;
             auto it = std::find_if(
                 std::begin(conn.subscriptions),
@@ -522,32 +522,32 @@ private:
                 });
         }
         
-        void operator()(command_parser::cmd::trigger &c) {
+        void operator()(parsers::command::cmd::trigger &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_line,
                 c.evt,
-                std::move(c.expr.value_or(sfe_parser::expression())));
+                std::move(c.expr.value_or(parsers::sfe::expression())));
             
             trigger_line_common(evt);
         }
         
-        void operator()(command_parser::cmd::trigger_binary &c) {
+        void operator()(parsers::command::cmd::trigger_binary &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_binary,
                 c.evt,
-                std::move(c.expr.value_or(sfe_parser::expression())));
+                std::move(c.expr.value_or(parsers::sfe::expression())));
             
             trigger_binary_common(evt, c);
         }
         
-        void operator()(command_parser::cmd::trigger_empty &c) {
+        void operator()(parsers::command::cmd::trigger_empty &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_empty,
                 c.evt,
-                std::move(c.expr.value_or(sfe_parser::expression{})));
+                std::move(c.expr.value_or(parsers::sfe::expression{})));
             
             trigger_empty_common(evt);
         }
@@ -569,7 +569,7 @@ private:
                 if (localstorage_it != conn.local_storage.end()) {
                     // we have the expresion :)
                     try {
-                        auto expr = sfe_parser::parse(localstorage_it->second);
+                        auto expr = parsers::sfe::parse(localstorage_it->second);
                         conn.expression_cache[c.expr_id] = expr;
                         e->expr = std::move(expr);
                         return err_no_error;
@@ -604,7 +604,7 @@ private:
             }
         }
         
-        void operator()(command_parser::cmd::trigger_cached &c) {
+        void operator()(parsers::command::cmd::trigger_cached &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_line,
@@ -615,7 +615,7 @@ private:
             });
         }
         
-        void operator()(command_parser::cmd::trigger_cached_binary &c) {
+        void operator()(parsers::command::cmd::trigger_cached_binary &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_binary,
@@ -626,7 +626,7 @@ private:
             });
         }
         
-        void operator()(command_parser::cmd::trigger_cached_empty &c) {
+        void operator()(parsers::command::cmd::trigger_cached_empty &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_binary,
@@ -638,7 +638,7 @@ private:
         }
         
         void operator()(
-            const command_parser::cmd::trigger_cached_cached_data &c) {
+            const parsers::command::cmd::trigger_cached_cached_data &c) {
             auto evt = std::make_shared<event>(
                 &conn,
                 event::trigger_binary,
@@ -677,27 +677,27 @@ private:
             });
         }
         
-        void operator()(command_parser::cmd::pause &c) {
+        void operator()(parsers::command::cmd::pause &c) {
             conn.paused = true;
             conn.async_read_next_message();
         }
         
-        void operator()(command_parser::cmd::resume &c) {
+        void operator()(parsers::command::cmd::resume &c) {
             conn.paused = false;
             conn.async_read_next_message();
         }
         
-        void operator()(command_parser::cmd::alive &c) {
+        void operator()(parsers::command::cmd::alive &c) {
             conn.reset_idle_counter();
             conn.async_read_next_message();
             // I guess this one should not produce any output
         }
         
-        void operator()(command_parser::cmd::kill_me &c) {
+        void operator()(parsers::command::cmd::kill_me &c) {
             conn.do_close();
         }
         
-        void operator()(command_parser::cmd::echo &c) {
+        void operator()(parsers::command::cmd::echo &c) {
             if (c.state) {
                 conn.echo = *(c.state);
             }
@@ -706,18 +706,18 @@ private:
             }
         }
         
-        void operator()(command_parser::cmd::execute &c) {
+        void operator()(parsers::command::cmd::execute &c) {
             conn.send_error(err_cmd_not_impl);
             conn.async_read_next_message();
         }
         
-        void operator()(command_parser::cmd::execute_script &c) {
+        void operator()(parsers::command::cmd::execute_script &c) {
             boost::ignore_unused(c);
             conn.send_error(err_cmd_not_impl);
             conn.async_read_next_message();
         }
         
-        void operator()(command_parser::cmd::execute_cached &c) {
+        void operator()(parsers::command::cmd::execute_cached &c) {
             boost::ignore_unused(c);
             conn.send_error(err_cmd_not_impl);
             conn.async_read_next_message();
@@ -737,13 +737,13 @@ private:
             return conn.local_storage.size();
         }
         
-        void operator()(command_parser::cmd::store &c) {
+        void operator()(parsers::command::cmd::store &c) {
             auto id = get_empty_local_storage_id();
             conn.local_storage[id] = std::move(c.line);
             conn.send_text("ok ", id);
         }
         
-        void operator()(command_parser::cmd::store_binary &c) {
+        void operator()(parsers::command::cmd::store_binary &c) {
             auto id = get_empty_local_storage_id();
             conn.local_storage[id] = std::vector<char>(c.size);
             auto buf = &(conn.local_storage[id].front());
@@ -760,7 +760,7 @@ private:
                 });
         }
         
-        void operator()(command_parser::cmd::release &c) {
+        void operator()(parsers::command::cmd::release &c) {
             auto it = conn.local_storage.find(c.id);
             if (it != conn.local_storage.end()) {
                 // fine, we have it
@@ -927,7 +927,7 @@ private:
             }
             else {
                 try {
-                    auto r = header_parser::parse(msg);
+                    auto r = parsers::header::parse(msg);
                     auto p = r.front();
                     r.pop_front();
                     properties[p] = r;
@@ -953,7 +953,7 @@ private:
             else {
                 protocol_error_code ec = err_no_error;
                 try {
-                    auto cmd = command_parser::parse(msg);
+                    auto cmd = parsers::command::parse(msg);
                     boost::apply_visitor(command_handler_, cmd);
                     return ;
                 }
