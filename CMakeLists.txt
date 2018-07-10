@@ -25,8 +25,7 @@ find_package(Lua REQUIRED)
 add_executable(
     riot_server_cpp
     src/main.cpp
-    src/parsers.cpp
-    src/lua_interface.cpp)
+    src/parsers.cpp)
 
 if(WIN32)
     target_link_libraries(riot_server_cpp wsock32 ws2_32)
