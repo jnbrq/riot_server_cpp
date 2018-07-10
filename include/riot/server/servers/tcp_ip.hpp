@@ -20,7 +20,7 @@
 #include <riot/server/connection_base.hpp>
 #include <riot/server/asio_helpers.hpp>
 
-namespace riot::server::simple {
+namespace riot::server {
 namespace tcp_ip {
 namespace detail {
 
@@ -158,10 +158,14 @@ struct server {
     
     ConnectionManager &conn_man;
     
-    explicit server(ConnectionManager &conn_man_):
+    server(
+        ConnectionManager &conn_man_,
+        const std::string &address = "0.0.0.0",
+        unsigned short port = 8000):
         conn_man{conn_man_},
         io_ctx_{conn_man_.io_ctx},
-        acceptor_{io_ctx_, ip::tcp::endpoint{ip::tcp::v4(), 8000}} {
+        acceptor_{io_ctx_, ip::tcp::endpoint{
+            ip::address::from_string(address), port}} {
     }
     
     void async_start() {

@@ -36,9 +36,6 @@ ${BOOST_BUILD_CMD} > boost_build_log.txt ;
 sudo ${BOOST_BUILD_CMD} install > boost_install_log.txt ;
 cd .. ; # up one directory
 
-# also download sol2.hpp
-./scripts/update-sol.sh
-
 # configure
 mkdir build ;
 cd build ;
