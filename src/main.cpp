@@ -11,6 +11,32 @@
 #include <sol/sol.hpp>
 #include <riot/server/simple/simple.hpp>
 
+namespace riot::server {
+
+namespace lua {
+
+namespace detail {
+
+class security_policy {
+
+};
+
+class artifact_provider {
+
+};
+
+}
+
+class connection_manager {
+    using connection_base_type = connection_base<connection_manager>;
+    
+    detail::security_policy security_policy;
+    detail::artifact_provider artifact_provider;
+    std::list<std::weak_ptr<connection_base_type>> connections;
+};
+
+}}
+
 int main() {
     using namespace riot::server::simple;
     
