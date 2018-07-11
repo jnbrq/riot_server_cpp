@@ -2,7 +2,8 @@
 
 # first, download and install CMake
 export CMAKE_URL="https://cmake.org/files/v3.11/cmake-3.11.4-Linux-x86_64.sh" ;
-wget "$CMAKE_URL" ;
+echo "Downloading CMake"
+wget "$CMAKE_URL" > /dev/null ;
 sudo sh cmake-* --prefix=/usr/local --exclude-subdir ;
 export PATH="/usr/local/bin:$PATH" ;
 cmake --version ;
@@ -26,11 +27,12 @@ runtime-link=shared
 --with-test
 --with-locale
 --with-iostreams" ;
-wget "${BOOST_URL}" ;
+echo "Downloading Boost"
+wget "${BOOST_URL}" > /dev/null ;
 mkdir boost
 tar xf boost*.tar.bz2 -C ./boost --strip-components=1 ;
 cd ./boost ;
-"echo 'using gcc : 7 : /usr/bin/g++-7 ; ' >> tools/build/src/user-config.jam ;"
+echo 'using gcc : 7 : /usr/bin/g++-7 ; ' >> tools/build/src/user-config.jam ;
 ./bootstrap.sh ;
 ${BOOST_BUILD_CMD} > boost_build_log.txt ;
 sudo ${BOOST_BUILD_CMD} install > boost_install_log.txt ;
