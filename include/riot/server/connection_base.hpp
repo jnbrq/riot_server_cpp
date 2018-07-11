@@ -49,7 +49,7 @@
 #include <riot/server/parsers/header.hpp>
 #include <riot/server/parsers/command.hpp>
 #include <riot/server/security_actions.hpp>
-#include <riot/server/server_artifacts.hpp>
+#include <riot/server/artifacts.hpp>
 #include <sstream>
 #include <memory>
 #include <list>
@@ -59,6 +59,7 @@
 #include <limits>
 #include <iomanip>
 #include <algorithm>
+#include <iostream>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/variant.hpp>
 #include <boost/asio.hpp>
@@ -279,7 +280,7 @@ struct connection_base:
         
         // check if the server allows this triggering
         if (!get_artifact(
-            server_artifacts::can_receive_event<connection_base>{evt.get()}))
+                    artifacts::can_receive_event<connection_base>{evt.get()}))
             return ;
         
         if (send_trailing_newline)
@@ -316,7 +317,7 @@ struct connection_base:
      */
     void async_start() {
         do_set_async_read_message_max_size(
-            get_artifact(server_artifacts::header_message_max_size {}));
+            get_artifact(artifacts::header_message_max_size {}));
         async_read_next_message();
     }
     
@@ -343,7 +344,17 @@ struct connection_base:
      */
     bool send_trailing_newline{true};
     
-    virtual ~connection_base() = default;
+    virtual ~connection_base() {
+        // when a connection object is destructed, its weak_ptr should be
+        // removed
+        conn_man.post([&] {
+            conn_man.connections.remove_if(
+                [] (auto & r) -> bool { return r.expired(); });
+            std::cout <<
+                "Cleanup: number of active connections: " << 
+                conn_man.connections.size() << std::endl;
+        });
+    }
     
 private:
 #define RIOT_BEGIN_ERROR_CASE(prefix, action, error_code) \
@@ -425,7 +436,7 @@ private:
         
         template <typename Event, typename F>
         void trigger_common(Event &&e, F &&f) {
-            if (get_artifact(server_artifacts::can_trigger_event{e->evt})) {
+            if (get_artifact(artifacts::can_trigger_event{e->evt})) {
                 f();
             }
             else {
@@ -516,8 +527,6 @@ private:
                             conn_shared->trigger(evt);
                         }
                     }
-                    conn.async_read_next_message();
-                    
                     conn.async_read_next_message();
                 });
         }
@@ -704,6 +713,7 @@ private:
             else {
                 conn.echo = !conn.echo; // toggle
             }
+            conn.async_read_next_message();
         }
         
         void operator()(parsers::command::cmd::execute &c) {
@@ -848,7 +858,7 @@ private:
         reset_idle_counter();
         
         auto description_max_size =
-            get_artifact(server_artifacts::header_max_size {});
+            get_artifact(artifacts::header_max_size {});
         if (description_max_size != 0) {
             if (description_total_size >= description_max_size) {
                 auto action = get_security_action(
@@ -1083,11 +1093,11 @@ protected:
      * @brief 
      */
     void freeze(protocol_error_code ec = err_no_error) {
-        freeze_for(get_artifact(server_artifacts::freeze_duration{ec}));
+        freeze_for(get_artifact(artifacts::freeze_duration{ec}));
     }
     
     bool can_activate() {
-        return get_artifact(server_artifacts::can_activate{});
+        return get_artifact(artifacts::can_activate{});
     }
     
     void reset_idle_counter() {

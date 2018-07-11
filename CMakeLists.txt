@@ -22,16 +22,16 @@ find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
 add_library(
-    _RIOT_server_cpp_parsers
+    _riot_server_cpp_parsers
     STATIC
     src/parsers.cpp)
 target_include_directories(
-    _RIOT_server_cpp_parsers
+    _riot_server_cpp_parsers
     PRIVATE
     ${RIOT_SERVER_CPP_SOURCE_DIR}/include)
-target_compile_definitions(_RIOT_server_cpp_parsers PRIVATE
+target_compile_definitions(_riot_server_cpp_parsers PRIVATE
     RIOT_SERVER_PARSER_SEPARATELY_COMPILED)
-target_link_libraries(_RIOT_server_cpp_parsers PRIVATE Boost::boost)
+target_link_libraries(_riot_server_cpp_parsers PRIVATE Boost::boost)
 
 add_library(RIOT::server_cpp INTERFACE IMPORTED)
 
@@ -42,7 +42,7 @@ endif()
 target_link_libraries(
     RIOT::server_cpp
     INTERFACE
-    _RIOT_server_cpp_parsers
+    _riot_server_cpp_parsers
     Threads::Threads
     Boost::boost
     Boost::system

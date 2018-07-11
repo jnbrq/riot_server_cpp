@@ -3,10 +3,20 @@
  * 
  * @date Wed Jul 11 01:21:08 +03 2018
  * 
+ * This file introduces how to use riot_server_cpp to setup a simple
+ * IoT server on TCP/IP port 5000 listening on 127.0.0.1.
+ * 
+ * A simple connection manager is used.
+ * 
  */
 
+// Boost.ASIO header
 #include <boost/asio.hpp>
+
+// Include file of the simple::connection_manager
 #include <riot/server/simple/connection_manager.hpp>
+
+// TCP/IP server
 #include <riot/server/servers/tcp_ip.hpp>
 
 int main(int argc, char **argv) {

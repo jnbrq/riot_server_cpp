@@ -35,7 +35,8 @@ using error_code = boost::system::error_code;
 
 template <typename ConnectionManager>
 struct connection: connection_base<ConnectionManager> {
-    using typename connection_base<ConnectionManager>::write_mode_t;
+    using connection_base_type = connection_base<ConnectionManager>;
+    using typename connection_base_type::write_mode_t;
     
     explicit connection(ConnectionManager &conn_man_):
         connection_base<ConnectionManager>{conn_man_},
@@ -46,8 +47,7 @@ struct connection: connection_base<ConnectionManager> {
     
     virtual ~connection() {
         std::cout << __PRETTY_FUNCTION__ << std::endl;
-        error_code ec;
-        sock.shutdown(ip::tcp::socket::shutdown_both, ec);
+        do_close();
     }
     
 private:
@@ -99,7 +99,7 @@ protected:
                     return ;
                 }
                 if (exceeded_) {
-                    // TODO maybe better error reporting?
+                    connection_base_type::send_error(err_header_unspecified);
                     _f("", false);
                     return ;
                 }
@@ -144,6 +144,7 @@ protected:
     
     void do_close() override {
         error_code ec;
+        sock.shutdown(ip::tcp::socket::shutdown_both, ec);
         sock.close(ec);
     };
     
