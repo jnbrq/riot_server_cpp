@@ -14,7 +14,7 @@
 #include <memory>
 #include <riot/server/connection_base.hpp>
 #include <riot/server/security_actions.hpp>
-#include <riot/server/server_artifacts.hpp>
+#include <riot/server/artifacts.hpp>
 
 namespace riot::server::simple {
 
@@ -66,7 +66,7 @@ struct artifact_provider {
     template <typename ConnectionBase>
     std::size_t operator()(
         ConnectionBase &,
-        server_artifacts::header_message_max_size const &a) {
+        artifacts::header_message_max_size const &a) {
         /* const is necessary, otherwise it fails to match this one for
          * rvalue references !!! */
         // one could also define template <C, T> ... T & instead of
@@ -78,7 +78,7 @@ struct artifact_provider {
     template <typename ConnectionBase>
     std::size_t operator()(
         ConnectionBase &,
-        server_artifacts::header_max_size const &a) {
+        artifacts::header_max_size const &a) {
         debug<std::decay_t<decltype(a)>>();
         return 200;
     }
@@ -99,6 +99,13 @@ public:
     connection_manager(boost::asio::io_context &io_ctx_):
         io_ctx{io_ctx_} {
         work = std::make_unique<boost::asio::io_context::work>(io_ctx);
+    }
+    
+    template <typename F>
+    void post(F &&f) {
+        boost::asio::post(io_ctx, [_f = std::move(f)] {
+            _f();
+        });
     }
 };
 

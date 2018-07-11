@@ -77,7 +77,7 @@ struct server {
     }
     
     void async_start() {
-        
+        async_accept_connection();
     }
 private:
     ip::tcp::acceptor acceptor_;
@@ -85,6 +85,7 @@ private:
     std::shared_ptr<connection> connection_;
     
     void async_accept_connection() {
+        connection_ = std::make_shared<connection>(*this);
         acceptor_.async_accept(
             connection_->sock,
             [this](const error_code &ec) {

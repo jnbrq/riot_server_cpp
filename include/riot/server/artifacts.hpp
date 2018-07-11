@@ -14,7 +14,7 @@
 
 namespace riot::server {
 
-namespace server_artifacts {
+namespace artifacts {
     template <typename ResultType>
     struct query_base {
         using result_type = ResultType;
