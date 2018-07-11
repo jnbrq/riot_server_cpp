@@ -39,7 +39,6 @@ sudo ${BOOST_BUILD_CMD} install > boost_install_log.txt ;
 cd .. ; # up one directory
 
 # configure
-mkdir build ;
-cd build ;
+mkdir build && cd build ;
 cmake .. ;
 
