@@ -52,6 +52,7 @@
 #include <riot/server/artifacts.hpp>
 #include <sstream>
 #include <memory>
+#include <vector>
 #include <list>
 #include <utility>
 #include <functional>
@@ -60,6 +61,7 @@
 #include <iomanip>
 #include <algorithm>
 #include <iostream>
+#include <type_traits>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/variant.hpp>
 #include <boost/asio.hpp>
@@ -347,13 +349,59 @@ struct connection_base:
     virtual ~connection_base() {
         // when a connection object is destructed, its weak_ptr should be
         // removed
-        conn_man.post([&] {
-            conn_man.connections.remove_if(
-                [] (auto & r) -> bool { return r.expired(); });
-            std::cout <<
-                "Cleanup: number of active connections: " << 
-                conn_man.connections.size() << std::endl;
-        });
+        
+        // we might prefer using vector for connections, so we should
+        // handle both list and vector cases
+        
+        // please note that static_assert seems to not respecting the
+        // if constexpr scope, that's bad.
+        constexpr auto list_used = std::is_same_v<
+                std::vector<std::weak_ptr<connection_base>>,
+                decltype(conn_man.connections)
+            >;
+        
+        constexpr auto vector_used = std::is_same_v<
+                std::list<std::weak_ptr<connection_base>>,
+                decltype(conn_man.connections)
+            >;
+        
+        static_assert(
+            list_used || vector_used,
+            "expected: std::vector<std::weak_ptr<...>> or "
+            "std::list<std::weak_ptr<...>> for storing connections.");
+        
+        if constexpr (vector_used) {
+            // efficiently implemented this by swapping the element to be 
+            // removed with the back. please note that this does not maintain
+            // the order, though.
+            conn_man.post([&] {
+                // TODO test the following code
+                // https://en.cppreference.com/w/cpp/container/vector/erase
+                // https://stackoverflow.com/questions/30611584/how-to-efficien
+                // tly-delete-elements-from-vector-c
+                for (
+                    auto it = conn_man.connections.begin();
+                    it != conn_man.connections.end(); ) {
+                    if (it->expired()) {
+                        *it = std::move(conn_man.connections.back());
+                        conn_man.connections.pop_back();
+                    }
+                    else ++it;
+                }
+                std::cout <<
+                    "Cleanup: number of active connections: " << 
+                    conn_man.connections.size() << std::endl;
+            });
+        }
+        else /* if (list_used) */ {
+            conn_man.post([&] {
+                conn_man.connections.remove_if(
+                    [] (auto & r) -> bool { return r.expired(); });
+                std::cout <<
+                    "Cleanup: number of active connections: " << 
+                    conn_man.connections.size() << std::endl;
+            });
+        }
     }
     
 private:
