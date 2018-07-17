@@ -61,32 +61,6 @@ target_include_directories(
 
 add_subdirectory(examples)
 
-# add new tests here
-set(TESTS
-    sfep)
-
 if (NOT DEFINED RIOT_SERVER_CPP_NO_TESTS)
-
-foreach(test ${TESTS})
-    set(exec test_${test})
-    add_executable(${exec} tests/test_${test}.cpp)
-    target_include_directories(
-        ${exec}
-        PRIVATE ${RIOT_SERVER_CPP_SOURCE_DIR}/include)
-    target_link_libraries(
-        ${exec}
-        Boost::boost
-        Boost::system
-        Boost::unit_test_framework
-        Threads::Threads
-        OpenSSL::SSL
-        OpenSSL::Crypto)
-    target_compile_definitions(${exec} PRIVATE BOOST_TEST_DYN_LINK)
-    add_test(
-        NAME ${test}
-        COMMAND ${exec}
-        WORKING_DIRECTORY ${RIOT_SERVER_CPP_SOURCE_DIR}/tests/test_${test}_data)
-    unset(exec)
-endforeach()
-
-endif()
+add_subdirectory(tests)
+endif ()
