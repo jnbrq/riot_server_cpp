@@ -20,10 +20,17 @@ foreach(test ${TESTS})
         ${exec}
         ${RIOT_SERVER_CPP_SOURCE_DIR}/tests/test_${test}.cpp)
     target_link_libraries(${exec} RIOT::test_cpp)
+    
+    set(working_directory ${RIOT_SERVER_CPP_SOURCE_DIR}/tests/test_${test}_data)
+    if (NOT EXISTS ${working_directory})
+    set(working_directory ${RIOT_SERVER_CPP_SOURCE_DIR}/tests)
+    endif()
+    
     add_test(
         NAME ${test}
         COMMAND ${exec}
-        WORKING_DIRECTORY
-            ${RIOT_SERVER_CPP_SOURCE_DIR}/tests/test_${test}_data)
+        WORKING_DIRECTORY ${working_directory})
+    
     unset(exec)
+    unset(working_directory)
 endforeach()
