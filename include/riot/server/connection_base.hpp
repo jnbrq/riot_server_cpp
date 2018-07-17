@@ -50,6 +50,7 @@
 #include <riot/server/parsers/command.hpp>
 #include <riot/server/security_actions.hpp>
 #include <riot/server/artifacts.hpp>
+#include <riot/mpl/is_specialization.hpp>
 #include <sstream>
 #include <memory>
 #include <vector>
@@ -350,20 +351,14 @@ struct connection_base:
         // when a connection object is destructed, its weak_ptr should be
         // removed
         
-        // we might prefer using vector for connections, so we should
-        // handle both list and vector cases
-        
-        // please note that static_assert seems to not respecting the
-        // if constexpr scope, that's bad.
-        constexpr auto list_used = std::is_same_v<
-                std::vector<std::weak_ptr<connection_base>>,
-                decltype(conn_man.connections)
-            >;
-        
-        constexpr auto vector_used = std::is_same_v<
-                std::list<std::weak_ptr<connection_base>>,
-                decltype(conn_man.connections)
-            >;
+        constexpr auto vector_used =
+            mpl::is_specialization_v<
+                decltype(conn_man.connections),
+                std::vector>;
+        constexpr auto list_used =
+            mpl::is_specialization_v<
+                decltype(conn_man.connections),
+                std::list>;
         
         static_assert(
             list_used || vector_used,
