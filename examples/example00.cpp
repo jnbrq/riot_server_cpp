@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
     simple::connection_manager connection_manager{io_ctx};
     
     // listen for tcp/ip connections only
-    tcp_ip::server<simple::connection_manager> server1{
+    tcp_ip::server server1{
         connection_manager, // using the given connection manager
         "127.0.0.1",        // only at the loopback address (0.0.0.0 for all)
         5000                // at port 5000

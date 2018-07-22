@@ -15,7 +15,7 @@
 #include <memory>
 #include <limits>
 #include <utility>
-#include <boost/ref.hpp>
+#include <limits>
 #include <boost/core/ignore_unused.hpp>
 #include <riot/server/connection_base.hpp>
 #include <riot/server/asio_helpers.hpp>
@@ -162,11 +162,13 @@ struct server {
     server(
         ConnectionManager &conn_man_,
         const std::string &address = "0.0.0.0",
-        unsigned short port = 8000):
+        unsigned short port = 8000,
+        std::size_t id = std::numeric_limits<std::size_t>::max()):
         conn_man{conn_man_},
         io_ctx_{conn_man_.io_ctx},
         acceptor_{io_ctx_, ip::tcp::endpoint{
-            ip::address::from_string(address), port}} {
+            ip::address::from_string(address), port}},
+        id_{id} {
     }
     
     void async_start() {
@@ -175,11 +177,13 @@ struct server {
 private:
     io_context &io_ctx_;
     ip::tcp::acceptor acceptor_;
+    std::size_t id_;
     
     std::shared_ptr<connection_type> connection_;
     
     void async_accept_connection() {
         connection_ = std::make_shared<connection_type>(conn_man);
+        connection_->server_id = id_;
         acceptor_.async_accept(
             connection_->sock, [this](const error_code &ec) {
             if (ec) {

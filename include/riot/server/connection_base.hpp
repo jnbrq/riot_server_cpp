@@ -58,11 +58,13 @@
 #include <utility>
 #include <functional>
 #include <iterator>
-#include <limits>
 #include <iomanip>
 #include <algorithm>
 #include <iostream>
 #include <type_traits>
+#include <limits>
+#include <string_view>
+#include <optional>
 #include <boost/core/ignore_unused.hpp>
 #include <boost/variant.hpp>
 #include <boost/asio.hpp>
@@ -326,7 +328,9 @@ struct connection_base:
     
     ConnectionManager &conn_man;
     
-    std::map<std::string, std::list<std::string>> properties;
+    // to use "std::string_view"s we need to use a transparent comparator
+    // https://stackoverflow.com/questions/35525777/use-of-string-view-for-map-lookup
+    std::map<std::string, std::list<std::string>, std::less<>> properties;
     
     std::string name;
     std::string password;
@@ -336,8 +340,11 @@ struct connection_base:
     std::map<std::size_t, std::vector<char>> local_storage;
     std::map<std::size_t, parsers::sfe::expression> expression_cache;
     
-    // should have both protocol and host
+    // should have both protocol and host (only for demostrative purposes)
     std::string endpoint_str;
+    
+    // to identify exactly which server has created this connection
+    std::size_t server_id{std::numeric_limits<std::size_t>::max()};
     
     bool paused{false};
     bool echo{true};
@@ -346,6 +353,15 @@ struct connection_base:
      * @brief Message-oriented protocols might prefer setting this false.
      */
     bool send_trailing_newline{true};
+    
+    std::optional<std::string> get_property_first(std::string_view sv) {
+        auto it = properties.find(sv);
+        if (it != properties.end()) {
+            // by definition, we should have at least one property value
+            return it->second.front();
+        }
+        return std::nullopt;
+    }
     
     virtual ~connection_base() {
         // when a connection object is destructed, its weak_ptr should be

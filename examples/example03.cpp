@@ -250,13 +250,13 @@ int main() {
     boost::asio::io_context io_ctx;
     
     my_server::connection_manager connection_manager{io_ctx};
-    tcp_ip::server<my_server::connection_manager> server1{
+    tcp_ip::server server1{
         connection_manager,
         "0.0.0.0",
         8000
     };
     
-    ws::server<my_server::connection_manager> server2{
+    ws::server server2{
         connection_manager,
         "0.0.0.0",
         8001

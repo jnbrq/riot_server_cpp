@@ -23,14 +23,14 @@ int main() {
     simple::connection_manager connection_manager{io_ctx};
     
     // usual TCP/IP server
-    tcp_ip::server<simple::connection_manager> server1{
+    tcp_ip::server server1{
         connection_manager, // using the given connection manager
         "0.0.0.0",          // at all interfaces
         8000                // the TCP port 8001
     };
     
     // WebSockets server (the parameters are the same)
-    ws::server<simple::connection_manager> server2{
+    ws::server server2{
         connection_manager, // using the given connection manager
         "0.0.0.0",          // at all interfaces
         8001                // the TCP port 8001
