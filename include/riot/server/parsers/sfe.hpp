@@ -139,19 +139,19 @@ BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::sfe::ast::unary_op,
     op,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::sfe::ast::matcher_op,
     matcher,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::sfe::ast::binary_op_group,
     first,
     rest
-);
+)
 
 // grammars
 #include <riot/server/parsers/detail/begin.hpp>
@@ -414,7 +414,7 @@ namespace riot::server {
                         "[parse_sfep] not consumed at " +
                         std::to_string(it-begin));
                 return expr;
-            };
+            }
             
             template <typename String>
             inline auto parse(const String &str) {

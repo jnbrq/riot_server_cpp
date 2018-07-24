@@ -152,127 +152,113 @@ namespace riot::server {
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::nil
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::subscribe,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::unsubscribe,
     n
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger,
     evt,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_binary,
     size,
     evt,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_empty,
     evt,
     expr
-);
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_cached,
     evt,
     expr_id
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_cached_binary,
     size,
     evt,
     expr_id
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_cached_empty,
     evt,
     expr_id
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::trigger_cached_cached_data,
     evt,
     expr_id,
     data_id
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::pause
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::resume
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::alive
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::kill_me
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::echo,
     state
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::execute,
     line
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::execute_script,
     size
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::execute_cached,
     id
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::store,
     line
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::store_binary,
     size
-);
-
+)
 
 BOOST_FUSION_ADAPT_STRUCT(
     riot::server::parsers::command::cmd::release,
     id
-);
+)
 
 #include <riot/server/parsers/detail/begin.hpp>
 #ifdef RIOT_SERVER_PARSER_CONTINUE
@@ -609,9 +595,9 @@ namespace riot::server {
                 cmd_store_binary,
                 cmd_release,
                 identifier
-            );
-        };
-    };
+            )
+        }
+    }
 }
 
 namespace riot::server {
@@ -653,7 +639,7 @@ namespace riot::server {
                         "[parse_command] not consumed at " +
                         std::to_string(it-begin));
                 return cmd;
-            };
+            }
             
             template <typename String>
             inline auto parse(const String &str) {
@@ -734,19 +720,19 @@ namespace riot::server {
                     << c.evt << " " << c.expr_id << " " << c.data_id;
             }
             
-            void operator()(const cmd::pause &c) {
+            void operator()(const cmd::pause &) {
                 out << "pause";
             }
             
-            void operator()(const cmd::resume &c) {
+            void operator()(const cmd::resume &) {
                 out << "resume";
             }
             
-            void operator()(const cmd::alive &c) {
+            void operator()(const cmd::alive &) {
                 out << "alive";
             }
             
-            void operator()(const cmd::kill_me &c) {
+            void operator()(const cmd::kill_me &) {
                 out << "kill-me";
             }
             

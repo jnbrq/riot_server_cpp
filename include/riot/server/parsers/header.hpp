@@ -55,7 +55,7 @@ namespace riot::server {
             BOOST_SPIRIT_DEFINE(
                 entry,
                 values,
-                identifier);
+                identifier)
         }
         
         static auto const entry_ = grammar::entry;
