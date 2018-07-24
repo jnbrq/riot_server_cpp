@@ -36,7 +36,7 @@ struct connection: connection_base<ConnectionManager> {
     
     explicit connection(ConnectionManager &conn_man_):
         connection_base<ConnectionManager>{conn_man_},
-        io_ctx_{conn_man_.io_ctx},
+        io_ctx_{conn_man_.io_context},
         ws_{io_ctx_},
         sock{ws_.next_layer()} {
         this->send_trailing_newline = true; // TODO change,
@@ -179,7 +179,7 @@ struct server {
         unsigned short port = 8001,
         std::size_t id = std::numeric_limits<std::size_t>::max()):
         conn_man{conn_man_},
-        io_ctx_{conn_man_.io_ctx},
+        io_ctx_{conn_man_.io_context},
         acceptor_{io_ctx_, ip::tcp::endpoint{
             ip::address::from_string(address), port}},
         id_{id} {

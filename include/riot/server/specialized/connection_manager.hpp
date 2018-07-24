@@ -95,7 +95,7 @@ struct connection_manager {
         boost::asio::io_context &io_ctx,
         SecurityPolicy &&security_policy,
         ArtifactProvider &&artifact_provider):
-        io_ctx{io_ctx},
+        io_context{io_ctx},
         security_policy_{std::forward<SecurityPolicy>(security_policy)},
         artifact_provider_{std::forward<ArtifactProvider>(artifact_provider)}{
     }
@@ -114,14 +114,7 @@ struct connection_manager {
     
     std::list<std::weak_ptr<connection_base_type>> connections;
     
-    boost::asio::io_context &io_ctx;
-    
-    template <typename F>
-    void post(F &&f) {
-        boost::asio::post(io_ctx, [_f = std::move(f)] {
-            _f();
-        });
-    }
+    boost::asio::io_context &io_context;
 private:
     SecurityPolicy security_policy_;
     ArtifactProvider artifact_provider_;

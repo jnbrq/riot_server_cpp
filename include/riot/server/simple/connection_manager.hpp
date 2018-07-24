@@ -93,19 +93,10 @@ public:
     std::list<std::weak_ptr<connection_base_type>> connections;
     
     // now the Boost-specific design
-    boost::asio::io_context &io_ctx;
-    std::unique_ptr<boost::asio::io_context::work> work;
+    boost::asio::io_context &io_context;
     
     connection_manager(boost::asio::io_context &io_ctx_):
-        io_ctx{io_ctx_} {
-        work = std::make_unique<boost::asio::io_context::work>(io_ctx);
-    }
-    
-    template <typename F>
-    void post(F &&f) {
-        boost::asio::post(io_ctx, [_f = std::move(f)] {
-            _f();
-        });
+        io_context{io_ctx_} {
     }
 };
 

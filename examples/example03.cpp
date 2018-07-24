@@ -226,20 +226,14 @@ struct artifact_provider {
 }
 
 struct connection_manager {
-    boost::asio::io_context &io_ctx;
     
-    connection_manager(boost::asio::io_context &io_ctx_): io_ctx{io_ctx_} {
+    connection_manager(boost::asio::io_context &io_ctx_): io_context{io_ctx_} {
     }
 
     detail::security_policy security_policy;
     detail::artifact_provider artifact_provider;
     std::list<std::weak_ptr<connection_base_type>> connections;
-    template <typename F>
-    void post(F &&f) {
-        boost::asio::post(io_ctx, [_f = std::move(f)] {
-            _f();
-        });
-    }
+    boost::asio::io_context &io_context;
 };
 
 }

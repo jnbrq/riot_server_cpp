@@ -385,7 +385,7 @@ struct connection_base:
             // efficiently implemented this by swapping the element to be 
             // removed with the back. please note that this does not maintain
             // the order, though.
-            conn_man.post([&] {
+            boost::asio::post(conn_man.io_context, [&] {
                 // TODO test the following code
                 // https://en.cppreference.com/w/cpp/container/vector/erase
                 // https://stackoverflow.com/questions/30611584/how-to-efficien
@@ -405,7 +405,7 @@ struct connection_base:
             });
         }
         else /* if (list_used) */ {
-            conn_man.post([&] {
+            boost::asio::post(conn_man.io_context, [&] {
                 conn_man.connections.remove_if(
                     [] (auto & r) -> bool { return r.expired(); });
                 std::cout <<

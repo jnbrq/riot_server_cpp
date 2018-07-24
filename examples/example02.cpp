@@ -70,7 +70,7 @@ struct artifact_provider {
     
     bool operator()(connection_base_type &conn, can_activate) {
         // say a connection can activate only if it has a property called
-        // password and it is 1234
+            // password and it is 1234
         //
         // actual security can be implemented here
         
@@ -143,21 +143,17 @@ struct artifact_provider {
  *      - CM.artifact_provider(connection_base_type, Artifact) is valid
  *        and its return value is compatible with Artifact::result_type.
  * 
- *      - CM.post(Handler) is valid where Handler is a callable object
- *        with signiture `void ()`.
+ *      - CM.io_context is a valid Boost.ASIO io_context object or a reference
+ *        to a valid instance.
  * 
  *      - CM.connections is of type:
  *        std::list<std::weak_ptr<connection_base_type>> (or alike)
  * 
  */
 struct connection_manager {
-    
-    // Boost.ASIO io_context is necessary
-    boost::asio::io_context &io_ctx;
-    
     // the constructor should bind the io_ctx reference to an io_context
     // object. another alternative might be defining io_ctx as an object.
-    connection_manager(boost::asio::io_context &io_ctx_): io_ctx{io_ctx_} {
+    connection_manager(boost::asio::io_context &io_ctx_): io_context{io_ctx_} {
     }
 
     // necessary (1/4)
@@ -170,12 +166,7 @@ struct connection_manager {
     std::list<std::weak_ptr<connection_base_type>> connections;
     
     // necessary (4/4)
-    template <typename F>
-    void post(F &&f) {
-        boost::asio::post(io_ctx, [_f = std::move(f)] {
-            _f();
-        });
-    }
+    boost::asio::io_context &io_context;
 };
 
 }
