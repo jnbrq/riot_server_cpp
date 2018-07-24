@@ -28,30 +28,30 @@ namespace detail {
     // filtered_overload implementation
 
     template <typename F1, typename ...Frest>
-    struct filtered_overload {
+    struct filtered_overload_t {
         // (1)
-        constexpr filtered_overload(F1 &&f1, Frest && ...frest):
+        constexpr filtered_overload_t(F1 &&f1, Frest && ...frest):
             f1_{std::forward<F1>(f1)}, frest_{std::forward<Frest>(frest)...} {
         }
 
         // (2)
         template <typename ...Args>
         constexpr auto operator()(Args && ...args) const & {
-            static_assert(is_callable_v<filtered_overload<F1, Frest...>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1, Frest...>, Args...>, "no viable overload found");
             return _impl(std::forward<Args>(args)...);
         }
 
         // (3)
         template <typename ...Args>
         constexpr auto operator()(Args && ...args) & {
-            static_assert(is_callable_v<filtered_overload<F1, Frest...>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1, Frest...>, Args...>, "no viable overload found");
             return _impl(std::forward<Args>(args)...);
         }
 
         // (4)
         template <typename ...Args>
         constexpr auto operator()(Args && ...args) && {
-            static_assert(is_callable_v<filtered_overload<F1, Frest...>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1, Frest...>, Args...>, "no viable overload found");
             return std::move(*this)._impl(std::forward<Args>(args)...);
         }
         
@@ -120,13 +120,13 @@ namespace detail {
         }
 
         F1 f1_;
-        filtered_overload<Frest...> frest_;
+        filtered_overload_t<Frest...> frest_;
     };
 
     template <typename F1>
-    struct filtered_overload<F1> {
+    struct filtered_overload_t<F1> {
         // (1)
-        constexpr explicit filtered_overload(F1 &&f1):
+        constexpr explicit filtered_overload_t(F1 &&f1):
             f1_{std::forward<F1>(f1)} {
         }
 
@@ -135,21 +135,21 @@ namespace detail {
         constexpr auto operator()(Args && ...args) const & {
             // please note that the static assertion above also implies that is_filter_v<F1> is false!
             // it also states that f1_(args...) is valid, hence we can remove all the if branches
-            static_assert(is_callable_v<filtered_overload<F1>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1>, Args...>, "no viable overload found");
             return _impl(std::forward<Args>(args)...);
         }
 
         // (3)
         template <typename ...Args>
         constexpr auto operator()(Args && ...args) & {
-            static_assert(is_callable_v<filtered_overload<F1>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1>, Args...>, "no viable overload found");
             return _impl(std::forward<Args>(args)...);
         }
 
         // (4)
         template <typename ...Args>
         constexpr auto operator()(Args && ...args) && {
-            static_assert(is_callable_v<filtered_overload<F1>, Args...>, "no viable overload found");
+            static_assert(is_callable_v<filtered_overload_t<F1>, Args...>, "no viable overload found");
             return std::move(*this)._impl(std::forward<Args>(args)...);
         }
         
@@ -172,10 +172,10 @@ namespace detail {
     };
 
     template <typename ...Fs>
-    struct is_special_callable<filtered_overload<Fs...>>: std::true_type {};
+    struct is_special_callable<filtered_overload_t<Fs...>>: std::true_type {};
 
     template <typename ...Fs, typename ...Args>
-    struct is_special_callable_callable<filtered_overload<Fs...>, Args...>:
+    struct is_special_callable_callable<filtered_overload_t<Fs...>, Args...>:
         std::integral_constant<bool, ( (!is_filter_v<Fs> && is_callable_v<Fs, Args...>) || ... )> {
         // a filtered_overload is callable provided that at least one of its non-filter callables
         // contain an appropriate operator()
@@ -185,12 +185,12 @@ namespace detail {
     };
 
     template <typename P, typename ...Fs>
-    struct filter: overload<Fs...> {
+    struct filter: filtered_overload_t<Fs...> {
         constexpr filter(P &&p, Fs && ...fs):
-            p_{std::forward<P>(p)}, overload<Fs...>{std::forward<Fs>(fs)...} {
+            filtered_overload_t<Fs...>{std::forward<Fs>(fs)...}, p_{std::forward<P>(p)} {
         }
 
-        using overload<Fs...>::operator();
+        using filtered_overload_t<Fs...>::operator();
 
         template <typename ...Args>
         constexpr auto check_condition(Args && ...args) const & {
@@ -215,11 +215,19 @@ namespace detail {
 
     template <typename P, typename ...Fs, typename ...Args>
     struct is_special_callable_callable<filter<P, Fs...>, Args...>:
-        is_special_callable_callable<overload<Fs...>, Args...> {};
+        is_special_callable_callable<filtered_overload_t<Fs...>, Args...> {};
 }
 
-using detail::filtered_overload;
-using detail::filter;
+template <typename ...Fs>
+constexpr auto filtered_overload(Fs && ...fs) {
+    return detail::filtered_overload_t<std::decay_t<Fs>...>{std::move(fs)...};
+}
+
+template <typename P, typename ...Fs>
+constexpr auto filter(P && p, Fs && ...fs) {
+    return detail::filter<std::decay_t<P>, std::decay_t<Fs>...>{
+        std::move(p), std::move(fs)...};
+}
 
 }
 
