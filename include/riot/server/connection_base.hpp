@@ -231,7 +231,7 @@ struct connection_base:
      * 
      * @param evt event object.
      */
-    void trigger(std::shared_ptr<const event> &evt) {
+    void trigger(std::shared_ptr<const event> const &evt) {
         // do not do anything, if sender is this
         if (evt->sender == this) // maybe this might be specialized?
             return ;
