@@ -528,7 +528,9 @@ private:
                         // str is what we are after basically
                         evt->data = std::vector<char>(
                             str.size() + (conn.send_trailing_newline ? 1 : 0));
-                        evt->data.back() = '\n';
+                        if (conn.send_trailing_newline) {
+                            evt->data.back() = '\n';
+                        }
                         std::copy(str.begin(), str.end(), evt->data.begin());
                         
                         for (auto &conn_weak: conn_man.connections) {
