@@ -923,15 +923,17 @@ private:
         
         reset_idle_counter();
         
-        auto description_max_size =
-            get_artifact(artifacts::header_max_size {});
-        if (description_max_size != 0) {
-            if (description_total_size >= description_max_size) {
-                auto action = get_security_action(
-                    security_actions::header_size_limit_reached{});
-                RIOT_HANDLE_ERROR_CASE(*this, action, err_header_unspecified);
+        if (state != st_active) {
+            auto description_max_size =
+                get_artifact(artifacts::header_max_size {});
+            if (description_max_size != 0) {
+                if (description_total_size >= description_max_size) {
+                    auto action = get_security_action(
+                        security_actions::header_size_limit_reached{});
+                    RIOT_HANDLE_ERROR_CASE(*this, action, err_header_unspecified);
+                }
+                description_total_size += msg.size() + 1 /* '\n' */;
             }
-            description_total_size += msg.size() + 1 /* '\n' */;
         }
         
         switch (state) {
