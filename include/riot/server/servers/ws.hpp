@@ -39,7 +39,7 @@ struct connection: connection_base<ConnectionManager> {
         io_ctx_{conn_man_.io_context},
         ws_{io_ctx_},
         sock{ws_.next_layer()} {
-        this->send_trailing_newline = true; // TODO change,
+        this->send_trailing_newline = false;
             // ^^^ message-based protocol?
         std::cout << __PRETTY_FUNCTION__ << std::endl;
     }

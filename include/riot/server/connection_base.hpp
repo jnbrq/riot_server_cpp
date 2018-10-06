@@ -236,6 +236,10 @@ struct connection_base:
         if (evt->sender == this) // maybe this might be specialized?
             return ;
         
+        // do not send if the connection is paused
+        if (paused)
+            return ;
+ 
         // first, evaluate the sfe of evt object
         if (!parsers::sfe::evaluate(
             evt->expr, name, groups.begin(), groups.end()))
@@ -747,16 +751,19 @@ private:
         
         void operator()(parsers::command::cmd::pause &c) {
             conn.paused = true;
+            conn.send_ok();
             conn.async_read_next_message();
         }
         
         void operator()(parsers::command::cmd::resume &c) {
             conn.paused = false;
+            conn.send_ok();
             conn.async_read_next_message();
         }
         
         void operator()(parsers::command::cmd::alive &c) {
             conn.reset_idle_counter();
+            conn.send_ok();
             conn.async_read_next_message();
             // I guess this one should not produce any output
         }
