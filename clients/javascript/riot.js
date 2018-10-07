@@ -186,8 +186,11 @@ function RIOTclient(config) {
         if (!active) {
             error("Connection is not active, trigger cannot be called");
         }
-        if (data.includes("\n")) {
-            error("Data containing new lines is not supported!");
+        
+        if (data !== null) {
+            if (data.includes("\n")) {
+                error("Data containing new lines is not supported!");
+            }
         }
         
         trigger_queue.push([evt, data]);

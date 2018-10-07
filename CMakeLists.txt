@@ -7,7 +7,14 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT DEFINED RIOT_SERVER_CPP_NO_TESTS)
-enable_testing()
+    enable_testing()
+
+    if (CMAKE_COMPILER_IS_GNUCC)
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -Wextra")
+    endif()
+    if (MSVC)
+        set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} /W4")
+    endif()
 endif ()
 
 find_package(

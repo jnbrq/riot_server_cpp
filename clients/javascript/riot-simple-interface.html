@@ -40,7 +40,7 @@
                         riot.subscribe(evt, function (evt, sender, data) {
                             console.log("temp_monitor title = " + title + " " + data);
                             var state = "closed";
-                            if (data == "1") {
+                            if (data.startsWith("1")) {
                                 state = "open";
                             }
                             card_body.html(`<span class="badge badge-primary">${state}</span>`);
@@ -63,7 +63,7 @@
                         btn.appendTo(card_body);
                         btn.on("click", function () {
                             if (riot.isActive()) {
-                                riot.trigger("ACTION_REFRESH", "");
+                                riot.trigger("ACTION_REFRESH", null);
                             }
                         });
                     };
@@ -77,9 +77,9 @@
                         ],
                         // row 2
                         [
-                            window_monitor('Window <span class="badge badge-success">1</span>', "EVT_WINDOW$window_sensor1"),
-                            window_monitor('Window <span class="badge badge-success">2</span>', "EVT_WINDOW$window_sensor2"),
-                            window_monitor('Window <span class="badge badge-success">3</span>', "EVT_WINDOW$window_sensor3")
+                            window_monitor('Window <span class="badge badge-success">1</span>', "EVT_WINDOW$window_sensor1 || EVT_WINDOW1"),
+                            window_monitor('Window <span class="badge badge-success">2</span>', "EVT_WINDOW$window_sensor2 || EVT_WINDOW2"),
+                            window_monitor('Window <span class="badge badge-success">3</span>', "EVT_WINDOW$window_sensor3 || EVT_WINDOW3")
                         ],
                         // row 3
                         [
