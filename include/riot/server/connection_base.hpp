@@ -295,12 +295,17 @@ struct connection_base:
         if (send_trailing_newline)
             ssheader << "\n";
         
+        // please note that the event data always has an appended new line
+        // this new line may or may not be sent
+        // if should not be sent, then the size parameter must be
+        // actual data size - 1
+        
         switch (evt->trigger_type) {
         case event::trigger_line: {
             enqueue_async_write(ssheader.str(), write_text);
             enqueue_async_write(
                 &(evt->data.front()),
-                evt->data.size(),
+                evt->data.size() - (send_trailing_newline ? 0 : 1),
                 [evt /* INCREF */](bool) {  },
                 write_text);
             break;
@@ -526,11 +531,9 @@ private:
                         conn.send_ok();
                         
                         // str is what we are after basically
-                        evt->data = std::vector<char>(
-                            str.size() + (conn.send_trailing_newline ? 1 : 0));
-                        if (conn.send_trailing_newline) {
-                            evt->data.back() = '\n';
-                        }
+                        evt->data = std::vector<char>(str.size() + 1);
+                        evt->data.back() = '\n';
+                            // always add a new line
                         std::copy(str.begin(), str.end(), evt->data.begin());
                         
                         for (auto &conn_weak: conn_man.connections) {
@@ -547,10 +550,9 @@ private:
         void trigger_binary_common(Event &&evt, Command &c) {
             trigger_common(std::forward<Event>(evt), [&] {
                 conn.send_ok();
-                evt->data = std::vector<char>(
-                    c.size + (conn.send_trailing_newline ? 1 : 0));
-                evt->data.back() = '\n';    // if !send_trailing_newline,
-                                            // then it is overwritten
+                evt->data = std::vector<char>(c.size + 1);
+                evt->data.back() = '\n';
+                
                 conn.do_async_read_binary(
                     &(evt->data.front()),
                     c.size,
@@ -728,8 +730,7 @@ private:
                         // it exists, good
                         conn.send_ok();
                         
-                        evt->data = std::vector<char>(
-                            str.size() + (conn.send_trailing_newline ? 1 : 0));
+                        evt->data = std::vector<char>(str.size() + 1);
                         evt->data.back() = '\n';
                         std::copy(str.begin(), str.end(), evt->data.begin());
                         

@@ -7,6 +7,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
         <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
         <script src="riot.js"></script>
+        
+        <style>
+            .slider {
+                width: 100%;
+            }
+        </style>
 
         <script>
 
@@ -64,8 +70,42 @@
                         btn.on("click", function () {
                             if (riot.isActive()) {
                                 riot.trigger("ACTION_REFRESH", null);
+                                // riot.trigger("ACTION_REFRESH", "");
                             }
                         });
+                    };
+                }
+                
+                function rgb_control(title, evt, min, max) {
+                    return function(element) {
+                        var card = $(`
+<div class="card flex-fill m-3">
+    <div class="card-header">${title}</div>
+    <div class="card-body">
+        <p>Red:</p>
+        <input id="r" class="slider" type="range" min="${min}" max="${max}" value="0"></input>
+        
+        <p>Green:</p>
+        <input id="g" class="slider" type="range" min="${min}" max="${max}" value="0"></input>
+        
+        <p>Blue:</p>
+        <input id="b" class="slider" type="range" min="${min}" max="${max}" value="0"></input>
+    </div>
+</div>
+`);
+                        var r = card.find("#r");
+                        var g = card.find("#g");
+                        var b = card.find("#b");
+                        
+                        function send() {
+                            riot.trigger("ACTION_RGB", `${r.val()} ${g.val()} ${b.val()}`);
+                        }
+                        
+                        r.on("input change", send);
+                        g.on("input change", send);
+                        b.on("input change", send);
+                        
+                        card.appendTo(element);
                     };
                 }
 
@@ -73,11 +113,13 @@
                     "widgets": [
                         // row 1
                         [
-                            temp_monitor("Lab Temperature", "EVT_TEMP$temp_sensor")
+                            temp_monitor("Lab Temperature", "EVT_TEMP$temp_sensor"),
+                            null,
+                            rgb_control("Change RGB", "ACTION_RGB", 0, 1023)
                         ],
                         // row 2
                         [
-                            window_monitor('Window <span class="badge badge-success">1</span>', "EVT_WINDOW$window_sensor1 || EVT_WINDOW1"),
+                            window_monitor('Window <spar.on("")n class="badge badge-success">1</span>', "EVT_WINDOW$window_sensor1 || EVT_WINDOW1"),
                             window_monitor('Window <span class="badge badge-success">2</span>', "EVT_WINDOW$window_sensor2 || EVT_WINDOW2"),
                             window_monitor('Window <span class="badge badge-success">3</span>', "EVT_WINDOW$window_sensor3 || EVT_WINDOW3")
                         ],
@@ -99,7 +141,7 @@
                         for (var j = 0; j < 3; j++) {
                             var col = $('<div class="col-md-4 d-flex"></div>');
                             col.appendTo(row);
-                            if (widgets[i][j] !== undefined) {
+                            if (typeof widgets[i][j] === "function") {
                                 widgets[i][j](col);
                             }
                         }
