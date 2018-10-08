@@ -1,0 +1,39 @@
+{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [
+        "msvc_x64_x64"
+      ],
+      "buildRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\build\\${name}",
+      "installRoot": "${env.USERPROFILE}\\CMakeBuilds\\${workspaceHash}\\install\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-v",
+      "ctestCommandArgs": "",
+      "variables": [
+        {
+          "name": "BOOST_ROOT",
+          "value": "C:/local/boost_1_68_0"
+        },
+        {
+          "name": "wxWidgets_ROOT_DIR",
+          "value": "C:/local/wxWidgets_3.1.1"
+        },
+        {
+          "name": "wxWidgets_LIB_DIR",
+          "value": "C:/local/wxWidgets_3.1.1/lib/vc141_x64_dll"
+        },
+        {
+          "name": "wxWidgets_CONFIGURATION",
+          "value": "mswu"
+        },
+        {
+          "name": "OPENSSL_ROOT_DIR",
+          "value": "C:/local/OpenSSL-Win64"
+        }
+      ]
+    }
+  ]
+}

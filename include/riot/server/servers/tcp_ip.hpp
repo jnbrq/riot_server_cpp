@@ -16,6 +16,8 @@
 #include <limits>
 #include <utility>
 #include <limits>
+
+#include <boost/current_function.hpp>
 #include <boost/core/ignore_unused.hpp>
 #include <riot/server/connection_base.hpp>
 #include <riot/server/asio_helpers.hpp>
@@ -42,11 +44,11 @@ struct connection: connection_base<ConnectionManager> {
         connection_base<ConnectionManager>{conn_man_},
         io_ctx_{conn_man_.io_context},
         sock{io_ctx_} {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << BOOST_CURRENT_FUNCTION  << std::endl;
     }
     
     virtual ~connection() {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << BOOST_CURRENT_FUNCTION  << std::endl;
         do_close();
     }
     

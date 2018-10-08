@@ -28,6 +28,11 @@ find_package(
 find_package(OpenSSL REQUIRED)
 find_package(Threads REQUIRED)
 
+# a hack for MSVC, otherwise I have linking error LNK1104 regarding Boost.System
+if (MSVC)
+	add_definitions(-DBOOST_ALL_NO_LIB)
+endif()
+
 add_library(
     _riot_server_cpp_parsers
     STATIC

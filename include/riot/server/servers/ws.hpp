@@ -17,6 +17,8 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 
+#include <boost/current_function.hpp>
+
 namespace riot::server {
 namespace ws {
 namespace detail {
@@ -41,7 +43,7 @@ struct connection: connection_base<ConnectionManager> {
         sock{ws_.next_layer()} {
         this->send_trailing_newline = false;
             // ^^^ message-based protocol?
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << BOOST_CURRENT_FUNCTION  << std::endl;
     }
     
     void async_ws_start() {
@@ -53,7 +55,7 @@ struct connection: connection_base<ConnectionManager> {
     }
     
     virtual ~connection() {
-        std::cout << __PRETTY_FUNCTION__ << std::endl;
+        std::cout << BOOST_CURRENT_FUNCTION  << std::endl;
         error_code ec;
         sock.shutdown(ip::tcp::socket::shutdown_both, ec);
     }

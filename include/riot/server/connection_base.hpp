@@ -394,32 +394,42 @@ struct connection_base:
             // efficiently implemented this by swapping the element to be 
             // removed with the back. please note that this does not maintain
             // the order, though.
-            boost::asio::post(conn_man.io_context, [&] {
+
+            // maybe affected from the bug below, changes were made.
+            boost::asio::post(conn_man.io_context, [cm = &conn_man] {
                 // TODO test the following code
                 // https://en.cppreference.com/w/cpp/container/vector/erase
                 // https://stackoverflow.com/questions/30611584/how-to-efficien
                 // tly-delete-elements-from-vector-c
                 for (
-                    auto it = conn_man.connections.begin();
-                    it != conn_man.connections.end(); ) {
+                    auto it = cm->connections.begin();
+                    it != cm->connections.end(); ) {
                     if (it->expired()) {
-                        *it = std::move(conn_man.connections.back());
-                        conn_man.connections.pop_back();
+                        *it = std::move(cm->connections.back());
+                        cm->connections.pop_back();
                     }
                     else ++it;
                 }
                 std::cout <<
                     "Cleanup: number of active connections: " << 
-                    conn_man.connections.size() << std::endl;
+                    cm->connections.size() << std::endl;
             });
         }
         else /* if (list_used) */ {
-            boost::asio::post(conn_man.io_context, [&] {
-                conn_man.connections.remove_if(
-                    [] (auto & r) -> bool { return r.expired(); });
-                std::cout <<
-                    "Cleanup: number of active connections: " << 
-                    conn_man.connections.size() << std::endl;
+            // well, there is a strange bug here
+            // after the weak ptrs are cleared, accessing
+            // to connections causes read violation
+            // to solve it, let's try to use a pointer
+            // instead of a reference? (cm is the ptr)
+            // ok, problem solved
+            // but this is a strange bug, may report
+            boost::asio::post(conn_man.io_context,
+                [cm = &conn_man] {
+                    cm->connections.remove_if(
+                        [] (auto & r) -> bool { return r.expired(); });
+                    std::cout <<
+                        "Cleanup: number of active connections: " << 
+                        cm->connections.size() << std::endl;
             });
         }
     }
@@ -477,7 +487,11 @@ private:
                 std::begin(conn.subscriptions),
                 std::end(conn.subscriptions),
                 [](auto &a, auto &b) { return a.n < b.n; });
-            auto n = nmax->n + 1;
+            // here, VisualStudio fails; in fact it's correct
+            // when first subscription occurs, nmax is the end
+            // iterator, which is forbidden to dereference
+            // so, check first, then increase
+            auto n = nmax == std::end(conn.subscriptions) ? 1 : nmax->n + 1;
             conn.subscriptions.emplace_back(n, std::move(c.expr));
             conn.send_text("ok ", /* std::setw(10), std::setfill('0'), */ n);
             conn.async_read_next_message();
