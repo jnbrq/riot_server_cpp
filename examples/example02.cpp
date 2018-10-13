@@ -167,8 +167,10 @@ struct connection_manager {
     // necessary (2/4)
     detail::artifact_provider artifact_provider;
     
+    using connection_base_type = riot::server::connection_base<connection_manager>;
+
     // necessary (3/4)
-    std::list<std::weak_ptr<ConnectionBase>> connections;
+    std::list<std::weak_ptr<connection_base_type>> connections;
     
     // necessary (4/4)
     boost::asio::io_context &io_context;
