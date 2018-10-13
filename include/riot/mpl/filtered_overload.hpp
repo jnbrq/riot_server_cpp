@@ -220,13 +220,12 @@ namespace detail {
 
 template <typename ...Fs>
 constexpr auto filtered_overload(Fs && ...fs) {
-    return detail::filtered_overload_t<std::decay_t<Fs>...>{std::move(fs)...};
+    return detail::filtered_overload_t<Fs...>{std::forward<Fs>(fs)...};
 }
 
 template <typename P, typename ...Fs>
 constexpr auto filter(P && p, Fs && ...fs) {
-    return detail::filter<std::decay_t<P>, std::decay_t<Fs>...>{
-        std::move(p), std::move(fs)...};
+    return detail::filter<P, Fs...>{std::forward<P>(p), std::forward<Fs>(fs)...};
 }
 
 }

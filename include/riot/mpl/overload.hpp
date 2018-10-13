@@ -127,7 +127,7 @@ namespace detail {
 
 template <typename ...Fs>
 constexpr auto overload(Fs && ...fs) {
-    return detail::overload_t<std::decay_t<Fs>...>{std::move(fs)...};
+    return detail::overload_t<Fs...>{std::forward(fs)...};
 }
 
 };
