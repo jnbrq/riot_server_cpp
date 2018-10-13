@@ -331,7 +331,7 @@ struct connection_base:
      */
     void async_start() {
         do_set_async_read_message_max_size(
-            get_artifact(artifacts::header_message_max_size {}));
+            get_artifact(artifacts::header_message_max_size<connection_base>{}));
         async_read_next_message();
     }
     
@@ -510,7 +510,7 @@ private:
             }
             else {
                 // ErrorCase: Invalid Argument
-                auto action = get_security_action(invalid_argument{});
+                auto action = get_security_action(invalid_argument<connection_base>{});
                 RIOT_HANDLE_ERROR_CASE(conn, action, err_cmd_invalid_arg);
             }
             conn.async_read_next_message();
@@ -518,13 +518,13 @@ private:
         
         template <typename Event, typename F>
         void trigger_common(Event &&e, F &&f) {
-            if (get_artifact(artifacts::can_trigger_event{e->evt})) {
+            if (get_artifact(artifacts::can_trigger_event<connection_base>{e->evt})) {
                 f();
             }
             else {
                 // ErrorCase: Trigger Prohibited
                 auto security_action =
-                    security_actions::trigger_prohibited{e->evt};
+                    security_actions::trigger_prohibited<connection_base>{e->evt};
                 auto action = get_security_action(security_action);
                 RIOT_HANDLE_ERROR_CASE(conn, action, err_trigger_prohibited);
                 conn.async_read_next_message();
@@ -688,7 +688,7 @@ private:
             }
             else {
                 auto action = get_security_action(
-                    security_actions::invalid_argument{});
+                    security_actions::invalid_argument<connection_base>{});
                 RIOT_HANDLE_ERROR_CASE(conn, action, error);
                 conn.async_read_next_message();
             }
@@ -757,7 +757,7 @@ private:
                     else {
                         // oops...
                         auto action = get_security_action(
-                            security_actions::invalid_argument{});
+                            security_actions::invalid_argument<connection_base>{});
                         RIOT_HANDLE_ERROR_CASE(
                             conn, action, err_cmd_invalid_arg);
                     }
@@ -866,7 +866,7 @@ private:
             }
             else {
                 auto action = get_security_action(
-                    security_actions::invalid_argument{});
+                    security_actions::invalid_argument<connection_base>{});
                 RIOT_HANDLE_ERROR_CASE(conn, action, err_cmd_invalid_arg);
             }
             conn.async_read_next_message();
@@ -942,11 +942,11 @@ private:
         
         if (state != st_active) {
             auto description_max_size =
-                get_artifact(artifacts::header_max_size {});
+                get_artifact(artifacts::header_max_size<connection_base>{});
             if (description_max_size != 0) {
                 if (description_total_size >= description_max_size) {
                     auto action = get_security_action(
-                        security_actions::header_size_limit_reached{});
+                        security_actions::header_size_limit_reached<connection_base>{});
                     RIOT_HANDLE_ERROR_CASE(*this, action, err_header_unspecified);
                 }
                 description_total_size += msg.size() + 1 /* '\n' */;
@@ -970,7 +970,7 @@ private:
             else {
                 // ErrorCase: Wrong Protocol
                 auto action =
-                    get_security_action( header_wrong_protocol {});
+                    get_security_action(header_wrong_protocol<connection_base>{});
                 
                 RIOT_BEGIN_ERROR_CASE(*this, action, err_protocol);
                 send_protocol();    // in any case, send protocol
@@ -989,7 +989,7 @@ private:
                 else {
                     // ErrorCase: No Name
                     auto action =
-                        get_security_action( header_no_name {});
+                        get_security_action(header_no_name<connection_base>{});
                     
                     RIOT_HANDLE_ERROR_CASE(*this, action, err_malformed_header);
                     
@@ -1031,7 +1031,7 @@ private:
                 catch (std::exception const &ex) {
                     // ErrorCase: Malformed Header
                     auto action =
-                        get_security_action( header_malformed_header {});
+                        get_security_action(header_malformed_header<connection_base>{});
                     
                     RIOT_HANDLE_ERROR_CASE(*this, action, err_malformed_header);
                     
@@ -1066,10 +1066,10 @@ private:
                     security_actions::action action;
                     
                     if (ec == err_parser_regex) {
-                        action = get_security_action(malformed_regex {});
+                        action = get_security_action(malformed_regex<connection_base>{});
                     }
                     else {
-                        action = get_security_action(malformed_command {});
+                        action = get_security_action(malformed_command<connection_base>{});
                     }
                     
                     RIOT_HANDLE_ERROR_CASE(*this, action, ec);
@@ -1178,11 +1178,11 @@ protected:
      * @brief 
      */
     void freeze(protocol_error_code ec = err_no_error) {
-        freeze_for(get_artifact(artifacts::freeze_duration{ec}));
+        freeze_for(get_artifact(artifacts::freeze_duration<connection_base>{ec}));
     }
     
     bool can_activate() {
-        return get_artifact(artifacts::can_activate{});
+        return get_artifact(artifacts::can_activate<connection_base>{});
     }
     
     void reset_idle_counter() {

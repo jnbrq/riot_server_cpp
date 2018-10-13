@@ -108,26 +108,26 @@ BOOST_AUTO_TEST_CASE(test_overload) {
     }
     
     {
-        struct {
+        constexpr struct {
             // please note that in lambdas constness is automatically implied
             constexpr auto operator()(int) const {
                 return 1;
             }
         } callable1;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(char) const {
                 return 2;
             }
         } callable2;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(const char *) const {
                 return 3;
             }
         } callable3;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(double) const {
                 return 4;
             }

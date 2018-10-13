@@ -50,7 +50,11 @@ public:
     static constexpr bool value = check_();
 
     // mimic std::integral_constant
-    typedef decltype(value) value_type;
+    // typedef decltype(value) value_type;
+    //    ^^ visual studio does not like this
+    //       one, and it seems to be correct (again)
+    typedef bool value_type;
+
     typedef is_callable type;
     constexpr operator value_type() const noexcept      { return value; }
     constexpr value_type operator()() const noexcept    { return value; }

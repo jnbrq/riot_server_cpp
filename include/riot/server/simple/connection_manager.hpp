@@ -33,7 +33,7 @@ struct security_policy {
     template <typename ConnectionBase>
     auto operator()(
         ConnectionBase &,
-        security_actions::header_size_limit_reached const&) {
+        security_actions::header_size_limit_reached<ConnectionBase> const&) {
         // this should be a must
         return security_actions::action_raise_error_and_halt;
     }
@@ -66,7 +66,7 @@ struct artifact_provider {
     template <typename ConnectionBase>
     std::size_t operator()(
         ConnectionBase &,
-        artifacts::header_message_max_size const &a) {
+        artifacts::header_message_max_size<ConnectionBase> const &a) {
         /* const is necessary, otherwise it fails to match this one for
          * rvalue references !!! */
         // one could also define template <C, T> ... T & instead of
@@ -78,7 +78,7 @@ struct artifact_provider {
     template <typename ConnectionBase>
     std::size_t operator()(
         ConnectionBase &,
-        artifacts::header_max_size const &a) {
+        artifacts::header_max_size<ConnectionBase> const &a) {
         debug<std::decay_t<decltype(a)>>();
         return 200;
     }

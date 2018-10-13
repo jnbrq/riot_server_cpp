@@ -126,8 +126,8 @@ void connection::read_next_line()
                 boost::algorithm::token_compress_on);
             
             if (toks.size() == 2) {
-                if (server.add_auth_func)
-                    server.add_auth_func(
+                if (this->server.add_auth_func)
+                    this->server.add_auth_func(
                         std::move(toks[0]),
                         std::move(toks[1]));
             }
@@ -147,11 +147,6 @@ using detail::server;
 
 namespace my_server {
 
-struct connection_manager;
-
-// for saving a few keystrokes
-using connection_base_type = riot::server::connection_base<connection_manager>;
-
 namespace detail {
 
 using namespace riot;
@@ -160,12 +155,13 @@ using namespace riot::server::security_actions;
 using namespace riot::server::artifacts;
 
 struct security_policy {
-    template <typename SecurityAction>
-    auto operator()(connection_base_type &, SecurityAction) {
+    template <typename ConnectionBase, typename SecurityAction>
+    auto operator()(ConnectionBase &, SecurityAction) {
         return action_raise_warning_and_ignore;
     }
     
-    auto operator()(connection_base_type &, header_size_limit_reached) {
+    template <typename ConnectionBase>
+    auto operator()(ConnectionBase &, header_size_limit_reached<ConnectionBase>) {
         return action_raise_error_and_halt;
     }
 };
@@ -173,15 +169,18 @@ struct security_policy {
 struct artifact_provider {
     std::map<std::string, std::string> auth_keys;
     
-    std::size_t operator()(connection_base_type &, header_message_max_size) {
+    template <typename ConnectionBase>
+    std::size_t operator()(ConnectionBase &, header_message_max_size<ConnectionBase>) {
         return 50;
     }
     
-    std::size_t operator()(connection_base_type &, header_max_size) {
+    template <typename ConnectionBase>
+    std::size_t operator()(ConnectionBase &, header_max_size<ConnectionBase>) {
         return 200;
     }
     
-    bool operator()(connection_base_type &conn, can_activate) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &conn, can_activate<ConnectionBase>) {
         // first, find the auth key
         auto it = conn.properties.find("auth_key");
         if (it != conn.properties.end()) {
@@ -195,38 +194,45 @@ struct artifact_provider {
         return false;
     }
     
+    template <typename ConnectionBase>
     duration_t operator()(
-        connection_base_type &, minimum_time_between_triggers) {
+        ConnectionBase &, minimum_time_between_triggers<ConnectionBase>) {
         return 500;
     }
     
-    bool operator()(connection_base_type &, can_execute_code) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &, can_execute_code<ConnectionBase>) {
         return false;
     }
     
-    duration_t operator()(connection_base_type &, freeze_duration) {
+    template <typename ConnectionBase>
+    duration_t operator()(ConnectionBase &, freeze_duration<ConnectionBase>) {
         return 5000;
     }
     
+    template <typename ConnectionBase>
     bool operator()(
-        connection_base_type & conn,
-        can_receive_event<connection_base_type> s) {
+        ConnectionBase & conn,
+        can_receive_event<ConnectionBase> s) {
         return true;
     }
     
-    bool operator()(connection_base_type &conn, can_trigger_event s) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &conn, can_trigger_event<ConnectionBase> s) {
         // say dev1 cannot trigger EVT_TEST
         return true;
     }
     
-    duration_t operator()(connection_base_type &, keep_alive_period) {
+    template <typename ConnectionBase>
+    duration_t operator()(ConnectionBase &, keep_alive_period<ConnectionBase>) {
         return 1000 * 60 * 60 * 24 * 7;   // 1 week
     }
 };
 }
 
 struct connection_manager {
-    
+    using connection_base_type = riot::server::connection_base<connection_manager>;
+
     connection_manager(boost::asio::io_context &io_ctx_): io_context{io_ctx_} {
     }
 

@@ -11,7 +11,6 @@
 #include <riot/mpl/is_callable.hpp>
 
 namespace riot::mpl {
-
 namespace detail {
     // overload implementation
     template <typename F1, typename ...Fs>

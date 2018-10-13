@@ -43,16 +43,37 @@ namespace security_actions {
             action_raise_error_and_halt | _action_block | action_not_allowed,
     };
     
+    template <typename ConnectionBase>
     struct header_wrong_protocol {  };
+
+    template <typename ConnectionBase>
     struct header_no_name {  };
+
+    template <typename ConnectionBase>
     struct header_malformed_header {  };
+
+    template <typename ConnectionBase>
     struct header_size_limit_reached {  };
+
+    template <typename ConnectionBase>
     struct malformed_command {  };
+
+    template <typename ConnectionBase>
     struct invalid_argument {  };
+
+    template <typename ConnectionBase>
     struct malformed_regex {  };
+
+    template <typename ConnectionBase>
     struct too_frequent_trigger {  };
+
+    template <typename ConnectionBase>
     struct unpermitted_code_execution {  };
+
+    template <typename ConnectionBase>
     struct malformed_code {  };
+
+    template <typename ConnectionBase>
     struct trigger_prohibited {
         std::string evt;
     };

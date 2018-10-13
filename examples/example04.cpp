@@ -27,6 +27,8 @@ int main(int argc, char **argv) {
     
     // for filter(...)
     using namespace riot::mpl;
+
+    using namespace riot::server::artifacts;
     
     boost::asio::io_context io_ctx;
     
@@ -52,34 +54,38 @@ int main(int argc, char **argv) {
     connection_manager conn_man(
         // the Boost.ASIO infrastructure
         io_ctx,
-        
-        // the order is important!
-        make_security_policy(/* the default security policy */),
         make_artifact_provider(
             filter(
                 // this part is valid if and only if the connection is a ws
                 // connection
-                [](auto &cm, auto &conn, ...) {
+                [](auto &conn, auto const &) {
                     return conn.server_id == id_ws_server;
                 },
-                [](auto &cm, auto &conn, const artifacts::can_activate &) {
+                case_of<can_activate>([](auto &conn, auto const &a) {
                     std::cout <<
                         "A ws connection tries to authenticate "
                         "checking for its password..." << "\n";
                     return conn.get_property_first("password").value_or("") == "1234";
-                }),
+                })
+            ),
             filter(
                 // this part is valid if and only if the connection is a raw
                 // TCP/IP connection
-                [](auto &cm, auto &conn, ...) {
+                [](auto &conn, auto const &) {
                     return conn.server_id == id_tcp_server;
                 },
-                [](auto &cm, auto &conn, artifacts::can_receive_event<std::decay_t<decltype(conn)>> const &artifact) {
+                case_of<can_activate>([](auto &conn, auto const &) {
+                    std::cout <<
+                        "The number of connections right now: " <<
+                        conn.conn_man.connections.size() << "\n";
+                    return true;
+                }),
+                case_of<can_receive_event>([] (auto &conn, auto const &a) {
                     std::cout <<
                         "A TCP/IP connection tries to receive an event "
-                        "the event name is: " << artifact.event->evt << "\n";
+                        "the event name is: " << a.event->evt << "\n";
                     return true;
-                }
+                })
             )
         )
     );

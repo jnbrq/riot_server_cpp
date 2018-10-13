@@ -19,11 +19,6 @@
 
 namespace my_server {
 
-struct connection_manager;
-
-// for saving a few keystrokes
-using connection_base_type = riot::server::connection_base<connection_manager>;
-
 namespace detail {
 
 using namespace riot;
@@ -38,13 +33,14 @@ using namespace riot::server::artifacts;
  */
 struct security_policy {
     // say the default policy is to simply raising warnings
-    template <typename SecurityAction>
-    auto operator()(connection_base_type &, SecurityAction) {
+    template <typename ConnectionBase, typename SecurityAction>
+    auto operator()(ConnectionBase &, SecurityAction) {
         return action_raise_warning_and_ignore;
     }
     
     // in case of a DoS attack, the connection should be halted
-    auto operator()(connection_base_type &, header_size_limit_reached) {
+    template <typename ConnectionBase>
+    auto operator()(ConnectionBase &, header_size_limit_reached<ConnectionBase>) {
         // please note that one can hold a list of endpoints
         // and count how frequent this happens and decide accordingly
         return action_raise_error_and_halt;
@@ -57,18 +53,21 @@ struct security_policy {
  * The possible artifacts can be found in artifacts.hpp
  */
 struct artifact_provider {
-    std::size_t operator()(connection_base_type &, header_message_max_size) {
+    template <typename ConnectionBase>
+    std::size_t operator()(ConnectionBase &, header_message_max_size<ConnectionBase>) {
         // a header message can be at most 50 bytes (with \n)
         // this is thought as a DoS protection
         return 50;
     }
     
-    std::size_t operator()(connection_base_type &, header_max_size) {
+    template <typename ConnectionBase>
+    std::size_t operator()(ConnectionBase &, header_max_size<ConnectionBase>) {
         // the total size of the header can be at most 200
         return 200;
     }
     
-    bool operator()(connection_base_type &conn, can_activate) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &conn, can_activate<ConnectionBase>) {
         // say a connection can activate only if it has a property called
             // password and it is 1234
         //
@@ -90,42 +89,48 @@ struct artifact_provider {
         return false;
     }
     
+    template <typename ConnectionBase>
     duration_t operator()(
-        connection_base_type &, minimum_time_between_triggers) {
+        ConnectionBase &, minimum_time_between_triggers<ConnectionBase>) {
         // this can be used to dictate a minimum sampling period so that
         // the network is not overwhelmed
         return 500;
     }
     
-    bool operator()(connection_base_type &, can_execute_code) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &, can_execute_code<ConnectionBase>) {
         // this is not used as code execution is not implemented yet
         // however, it is reserved
         return false;
     }
     
-    duration_t operator()(connection_base_type &, freeze_duration) {
+    template <typename ConnectionBase>
+    duration_t operator()(ConnectionBase &, freeze_duration<ConnectionBase>) {
         // as a result of the security action, the connection might be frozen
         // this is how long it should be frozen
         return 5000;
     }
     
+    template <typename ConnectionBase>
     bool operator()(
-        connection_base_type & conn,
-        can_receive_event<connection_base_type> s) {
+        ConnectionBase & conn,
+        can_receive_event<ConnectionBase> s) {
         // say dev1 cannot receive events from dev2, for example
         if (conn.name == "dev1" && s.event->sender->name == "dev2")
             return false;
         return true;
     }
     
-    bool operator()(connection_base_type &conn, can_trigger_event s) {
+    template <typename ConnectionBase>
+    bool operator()(ConnectionBase &conn, can_trigger_event<ConnectionBase> s) {
         // say dev1 cannot trigger EVT_TEST
         if (conn.name == "dev1" && s.evt == "EVT_TEST")
             return false;
         return true;
     }
     
-    duration_t operator()(connection_base_type &, keep_alive_period) {
+    template <typename ConnectionBase>
+    duration_t operator()(ConnectionBase &, keep_alive_period<ConnectionBase>) {
         return 1000 * 60 * 60 * 24 * 7;   // 1 week
     }
 };
@@ -137,17 +142,17 @@ struct artifact_provider {
  * There are a few requirement of the ConnectionManager concept. For a
  * ConnectionManager CM, the followings should be satisfied:
  * 
- *      - CM.security_policy(connection_base_type, SecurityAction) is valid
+ *      - CM.security_policy(ConnectionBase, SecurityAction) is valid
  *        and returns a valid security_actions::action
  * 
- *      - CM.artifact_provider(connection_base_type, Artifact) is valid
+ *      - CM.artifact_provider(ConnectionBase, Artifact) is valid
  *        and its return value is compatible with Artifact::result_type.
  * 
  *      - CM.io_context is a valid Boost.ASIO io_context object or a reference
  *        to a valid instance.
  * 
  *      - CM.connections is of type:
- *        std::list<std::weak_ptr<connection_base_type>> (or alike)
+ *        std::list<std::weak_ptr<ConnectionBase>> (or alike)
  * 
  */
 struct connection_manager {
@@ -163,7 +168,7 @@ struct connection_manager {
     detail::artifact_provider artifact_provider;
     
     // necessary (3/4)
-    std::list<std::weak_ptr<connection_base_type>> connections;
+    std::list<std::weak_ptr<ConnectionBase>> connections;
     
     // necessary (4/4)
     boost::asio::io_context &io_context;
