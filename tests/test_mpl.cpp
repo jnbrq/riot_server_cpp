@@ -108,26 +108,26 @@ BOOST_AUTO_TEST_CASE(test_overload) {
     }
     
     {
-        constexpr struct {
+        struct {
             // please note that in lambdas constness is automatically implied
             constexpr auto operator()(int) const {
                 return 1;
             }
         } callable1;
         
-        constexpr struct {
+        struct {
             constexpr auto operator()(char) const {
                 return 2;
             }
         } callable2;
         
-        constexpr struct {
+        struct {
             constexpr auto operator()(const char *) const {
                 return 3;
             }
         } callable3;
         
-        constexpr struct {
+        struct {
             constexpr auto operator()(double) const {
                 return 4;
             }
@@ -152,6 +152,8 @@ BOOST_AUTO_TEST_CASE(test_overload) {
     
     {
         // lambdas are moved from themselves, do not put constexpr here
+        // but, without constexpr, how can f be constexpr? IDK.
+        // visual studio complains here, and I guess it's right.
         auto callable1 = [](int) { return 1; };
         auto callable2 = [](char) { return 2; };
         auto callable3 = [](const char *) { return 3; };
@@ -177,6 +179,7 @@ BOOST_AUTO_TEST_CASE(test_overload) {
 
 BOOST_AUTO_TEST_CASE(test_filtered_overload) {
     {
+        // but, MSVC is not correct here
         constexpr auto f = filtered_overload(
             [](int) { return 1; },
             [](char) { return 2; },
@@ -213,6 +216,7 @@ BOOST_AUTO_TEST_CASE(test_filtered_overload) {
     }
     
     {
+        // here MSVC shouldn't've complained
         constexpr auto val1 = filtered_overload(
             [](int) { return 1; },
             [](char) { return 2; },

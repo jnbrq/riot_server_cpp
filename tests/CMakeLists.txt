@@ -1,7 +1,10 @@
 # add new tests here
 set(TESTS
-    sfep
-    mpl)
+    sfep)
+
+if (NOT MSVC)
+	set(TESTS ${TESTS} mpl)
+endif()
 
 add_library(RIOT::test_cpp INTERFACE IMPORTED)
 target_link_libraries(
