@@ -108,26 +108,26 @@ BOOST_AUTO_TEST_CASE(test_overload) {
     }
     
     {
-        struct {
+        constexpr struct {
             // please note that in lambdas constness is automatically implied
             constexpr auto operator()(int) const {
                 return 1;
             }
         } callable1;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(char) const {
                 return 2;
             }
         } callable2;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(const char *) const {
                 return 3;
             }
         } callable3;
         
-        struct {
+        constexpr struct {
             constexpr auto operator()(double) const {
                 return 4;
             }
@@ -154,10 +154,10 @@ BOOST_AUTO_TEST_CASE(test_overload) {
         // lambdas are moved from themselves, do not put constexpr here
         // but, without constexpr, how can f be constexpr? IDK.
         // visual studio complains here, and I guess it's right.
-        auto callable1 = [](int) { return 1; };
-        auto callable2 = [](char) { return 2; };
-        auto callable3 = [](const char *) { return 3; };
-        auto callable4 = [](double) { return 4; };
+        constexpr auto callable1 = [](int) { return 1; };
+        constexpr auto callable2 = [](char) { return 2; };
+        constexpr auto callable3 = [](const char *) { return 3; };
+        constexpr auto callable4 = [](double) { return 4; };
         
         constexpr auto f = overload(
             callable1,
