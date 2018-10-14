@@ -30,8 +30,13 @@ namespace riot::mpl {
         template <typename F1, typename ...Frest>
         struct filtered_overload_t {
             // (1)
-            constexpr filtered_overload_t(F1 &&f1, Frest && ...frest) :
-                f1_{ std::forward<F1>(f1) }, frest_{ std::forward<Frest>(frest)... } {
+            // here is another approach: explicitly defining the constructor,
+            // instead of {}-syntax.
+            // (template parameter names needs to be different)
+            // perfect forwarding done right, I wish.
+            template <typename FF1, typename ...FFrest>
+            constexpr filtered_overload_t(FF1 &&f1, FFrest && ...frest) :
+                f1_{ std::forward<FF1>(f1) }, frest_{ std::forward<FFrest>(frest)... } {
             }
 
             // (2)
@@ -126,8 +131,9 @@ namespace riot::mpl {
         template <typename F1>
         struct filtered_overload_t<F1> {
             // (1)
-            constexpr explicit filtered_overload_t(F1 &&f1) :
-                f1_{ std::forward<F1>(f1) } {
+            template <typename FF1>
+            constexpr explicit filtered_overload_t(FF1 &&f1) :
+                f1_{ std::forward<FF1>(f1) } {
             }
 
             // (2)
@@ -186,8 +192,9 @@ namespace riot::mpl {
 
         template <typename P, typename ...Fs>
         struct filter : filtered_overload_t<Fs...> {
-            constexpr filter(P &&p, Fs && ...fs) :
-                filtered_overload_t<Fs...>{ std::forward<Fs>(fs)... }, p_{ std::forward<P>(p) } {
+            template <typename PP, typename ...FFs>
+            constexpr filter(PP &&p, FFs && ...fs) :
+                filtered_overload_t<Fs...>{ std::forward<FFs>(fs)... }, p_{ std::forward<PP>(p) } {
             }
 
             using filtered_overload_t<Fs...>::operator();
@@ -220,13 +227,13 @@ namespace riot::mpl {
 
     template <typename ...Fs>
     constexpr auto filtered_overload(Fs && ...fs) {
-        return detail::filtered_overload_t<std::decay_t<Fs>...>{std::move(fs)...};
+        return detail::filtered_overload_t<std::decay_t<Fs>...>{static_cast<Fs&&>(fs)...};
     }
 
     template <typename P, typename ...Fs>
     constexpr auto filter(P && p, Fs && ...fs) {
         return detail::filter<std::decay_t<P>, std::decay_t<Fs>...>{
-            std::move(p), std::move(fs)...};
+            static_cast<P&&>(p), static_cast<Fs&&>(fs)...};
     }
 
 }
