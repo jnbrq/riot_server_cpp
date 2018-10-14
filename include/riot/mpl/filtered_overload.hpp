@@ -34,9 +34,9 @@ namespace riot::mpl {
             // instead of {}-syntax.
             // (template parameter names needs to be different)
             // perfect forwarding done right, I wish.
-            template <typename FF1, typename ...FFrest>
-            constexpr filtered_overload_t(FF1 &&f1, FFrest && ...frest) :
-                f1_{ std::forward<FF1>(f1) }, frest_{ std::forward<FFrest>(frest)... } {
+            template <typename _F1, typename ..._Frest>
+            constexpr filtered_overload_t(_F1 &&f1, _Frest && ...frest) :
+                f1_{ std::forward<_F1>(f1) }, frest_{ std::forward<_Frest>(frest)... } {
             }
 
             // (2)
@@ -131,9 +131,9 @@ namespace riot::mpl {
         template <typename F1>
         struct filtered_overload_t<F1> {
             // (1)
-            template <typename FF1>
-            constexpr explicit filtered_overload_t(FF1 &&f1) :
-                f1_{ std::forward<FF1>(f1) } {
+            template <typename _F1>
+            constexpr explicit filtered_overload_t(_F1 &&f1) :
+                f1_{ std::forward<_F1>(f1) } {
             }
 
             // (2)
@@ -192,9 +192,9 @@ namespace riot::mpl {
 
         template <typename P, typename ...Fs>
         struct filter : filtered_overload_t<Fs...> {
-            template <typename PP, typename ...FFs>
-            constexpr filter(PP &&p, FFs && ...fs) :
-                filtered_overload_t<Fs...>{ std::forward<FFs>(fs)... }, p_{ std::forward<PP>(p) } {
+            template <typename _P, typename ..._Fs>
+            constexpr filter(_P &&p, _Fs && ...fs) :
+                filtered_overload_t<Fs...>{ std::forward<_Fs>(fs)... }, p_{ std::forward<_P>(p) } {
             }
 
             using filtered_overload_t<Fs...>::operator();
