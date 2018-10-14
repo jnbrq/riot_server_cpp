@@ -16,9 +16,8 @@ namespace riot::mpl {
         // overload implementation
         template <typename F1, typename ...Fs>
         struct overload_t {
-            constexpr overload_t(F1 &&f1, Fs && ...fs) :
-                f1_{ std::forward<F1>(f1) }, frest_{ std::forward<Fs>(fs)... } {
-            }
+            F1 f1;
+            overload_t<Fs...> frest;
 
             template <typename ...Args>
             constexpr auto operator()(Args && ...args) const & {
@@ -41,39 +40,35 @@ namespace riot::mpl {
                 return std::move(*this)._impl(std::forward<Args>(args)...);
             }
 
+        private:
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) const & {
                 if constexpr (is_callable_v<F1, Args...>)
-                    return f1_(std::forward<Args>(args)...);
+                    return f1(std::forward<Args>(args)...);
                 else
-                    return frest_._impl(std::forward<Args>(args)...);
+                    return frest(std::forward<Args>(args)...);
             }
 
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) & {
                 if constexpr (is_callable_v<F1, Args...>)
-                    return f1_(std::forward<Args>(args)...);
+                    return f1(std::forward<Args>(args)...);
                 else
-                    return frest_._impl(std::forward<Args>(args)...);
+                    return frest(std::forward<Args>(args)...);
             }
 
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) && {
                 if constexpr (is_callable_v<F1, Args...>)
-                    return std::move(f1_)(std::forward<Args>(args)...);
+                    return std::move(f1)(std::forward<Args>(args)...);
                 else
-                    return std::move(frest_)._impl(std::forward<Args>(args)...);
+                    return std::move(frest)(std::forward<Args>(args)...);
             }
-        private:
-            F1 f1_;
-            overload_t<Fs...> frest_;
         };
 
         template <typename F1>
         struct overload_t<F1> {
-            constexpr explicit overload_t(F1 &&f1) :
-                f1_{ std::forward<F1>(f1) } {
-            }
+            F1 f1;
 
             template <typename ...Args>
             constexpr auto operator()(Args && ...args) const & {
@@ -96,22 +91,21 @@ namespace riot::mpl {
                 return std::move(*this)._impl(std::forward<Args>(args)...);
             }
 
+        private:
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) const & {
-                return f1_(std::forward<Args>(args)...);
+                return f1(std::forward<Args>(args)...);
             }
 
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) & {
-                return f1_(std::forward<Args>(args)...);
+                return f1(std::forward<Args>(args)...);
             }
 
             template <typename ...Args>
             constexpr auto _impl(Args && ...args) && {
-                return std::move(f1_)(std::forward<Args>(args)...);
+                return std::move(f1)(std::forward<Args>(args)...);
             }
-        private:
-            F1 f1_;
         };
 
         template <typename ...Fs>
@@ -126,9 +120,15 @@ namespace riot::mpl {
         };
     }
 
-    template <typename ...Fs>
-    constexpr auto overload(Fs && ...fs) {
-        return detail::overload_t<std::decay_t<Fs>...>{std::move(fs)...};
+    template <typename F1>
+    constexpr auto overload(F1 &&f1) {
+        return detail::overload_t<std::decay_t<F1>>{static_cast<F1&&>(f1)};
+    }
+
+    template <typename F1, typename ...Frest>
+    constexpr auto overload(F1 &&f1, Frest && ...frest) {
+        return detail::overload_t<std::decay_t<F1>, std::decay_t<Frest>...>{
+            static_cast<F1&&>(f1), overload(static_cast<Frest&&>(frest)...)};
     }
 };
 
