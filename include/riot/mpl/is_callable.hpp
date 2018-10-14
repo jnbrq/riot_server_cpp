@@ -50,7 +50,8 @@ namespace riot::mpl {
         static constexpr bool value = check_();
 
         // mimic std::integral_constant
-        typedef decltype(value) value_type;
+        // typedef decltype(value) value_type;
+        typedef bool value_type;    // make VS happy
         typedef is_callable type;
         constexpr operator value_type() const noexcept { return value; }
         constexpr value_type operator()() const noexcept { return value; }
