@@ -27,8 +27,15 @@ int main(int argc, char **argv) {
     
     // for filter(...)
     using namespace riot::mpl;
-
+    
     using namespace riot::server::artifacts;
+    
+    // this struct is embedded to each and every connection
+    // it must be default-constructable
+    struct data_type {
+        // fill any connection-specific information here
+        // you can access them using "conn.data"
+    };
     
     boost::asio::io_context io_ctx;
     
@@ -54,7 +61,7 @@ int main(int argc, char **argv) {
     connection_manager conn_man(
         // the Boost.ASIO infrastructure
         io_ctx,
-        make_artifact_provider(
+        filtered_overload(
             filter(
                 // this part is valid if and only if the connection is a ws
                 // connection
@@ -86,8 +93,11 @@ int main(int argc, char **argv) {
                         "the event name is: " << a.event->evt << "\n";
                     return true;
                 })
-            )
-        )
+            ),
+            fallback::artifact_provider{}
+        ),
+        fallback::security_policy{},
+        data_type{}
     );
     
     // usual TCP/IP server

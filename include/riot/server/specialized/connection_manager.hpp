@@ -70,6 +70,9 @@ namespace fallback {
     };
 }
 
+// this part is unnecessary for my purposes
+#if 0
+
 template <typename ...Args>
 constexpr auto make_security_policy(Args && ...args) {
     return riot::mpl::filtered_overload(
@@ -84,15 +87,21 @@ constexpr auto make_artifact_provider(Args && ...args) {
         fallback::artifact_provider{});
 }
 
-template <typename ArtifactProvider, typename SecurityPolicy = fallback::security_policy>
+#endif
+
+template <
+    typename ArtifactProvider,
+    typename SecurityPolicy = fallback::security_policy,
+    typename DataType = void*>
 struct connection_manager {
     connection_manager(
         boost::asio::io_context &io_ctx,
         ArtifactProvider &&artifact_provider,
-        SecurityPolicy &&security_policy = fallback::security_policy{}) :
+        SecurityPolicy &&security_policy = fallback::security_policy{},
+        DataType = (void *) nullptr) :
         io_context{io_ctx},
         security_policy_{std::forward<SecurityPolicy>(security_policy)},
-        artifact_provider_{std::forward<ArtifactProvider>(artifact_provider)}{
+        artifact_provider_{std::forward<ArtifactProvider>(artifact_provider)} {
     }
     
     using connection_base_type = connection_base<connection_manager>;
@@ -118,7 +127,8 @@ private:
 namespace detail {
     template <template <typename> typename What, typename F>
     struct case_of_t {
-        constexpr case_of_t(F &&f) : f_{ std::forward<F>(f) } {
+        template <typename _F>
+        constexpr case_of_t(_F &&f) : f_{ std::forward<_F>(f) } {
         }
 
         template <typename ConnectionBase>
@@ -148,7 +158,7 @@ namespace detail {
 
 template <template <typename> typename What, typename F>
 auto case_of(F &&f) {
-    return detail::case_of_t<What, F>{std::forward<F>(f)};
+    return detail::case_of_t<What, std::decay_t<F>>{std::forward<F>(f)};
 }
 
 }

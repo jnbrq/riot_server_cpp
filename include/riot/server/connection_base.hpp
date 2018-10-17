@@ -77,7 +77,7 @@ namespace riot::server {
 #define RIOT_KEEP_CONN          RIOT_INC_REF
 #define RIOT_KEEP_CONN_EX(x)    RIOT_INC_REF_OF(x)
 
-template <typename ConnectionManager>
+template <typename ConnectionManager, typename DataType = void *>
 struct connection_base:
     std::enable_shared_from_this<connection_base<ConnectionManager>> {
     
@@ -127,7 +127,6 @@ struct connection_base:
     };
     
     using simple_callback_t = std::function<void (bool)>;
-    using next_cmd_callback_t = std::function<void (std::string, bool)>;
     
     /**
      * @brief Constructs a connection_base object.
@@ -362,6 +361,9 @@ struct connection_base:
      * @brief Message-oriented protocols might prefer setting this false.
      */
     bool send_trailing_newline{true};
+    
+    // An extension point
+    DataType data;
     
     std::optional<std::string> get_property_first(std::string_view sv) {
         auto it = properties.find(sv);
